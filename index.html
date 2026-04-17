@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>D&D MapForge — Constructor de Escenarios</title>
+  <meta name="description" content="Constructor de mapas interactivo con zoom, iniciativa y slots de guardado para campañas de D&D."/>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+<!-- ── Toolbar ─────────────────────────────────────────────── -->
+<header class="toolbar">
+  <div class="toolbar-brand">⚔️ D&amp;D <span>MapForge</span></div>
+
+  <!-- Zoom Controls -->
+  <div class="zoom-controls">
+    <button class="tool-btn zoom-btn" id="btn-zoom-out" title="Alejar (Ctrl+-)">−</button>
+    <span class="zoom-display" id="zoom-display">100%</span>
+    <button class="tool-btn zoom-btn" id="btn-zoom-in" title="Acercar (Ctrl+=)">+</button>
+    <button class="tool-btn" id="btn-zoom-reset" title="Ajustar al mapa (Ctrl+0)">⊡ Ajustar</button>
+  </div>
+
+  <button class="tool-btn active" id="btn-grid-toggle" title="Mostrar/ocultar cuadrícula">⊞ Grilla</button>
+
+  <div class="toolbar-sep"></div>
+
+  <button class="tool-btn tool-btn--purple" id="btn-open-initiative" title="Panel de iniciativa">⚔️ Iniciativa</button>
+  <button class="tool-btn tool-btn--purple" id="btn-open-maps"       title="Guardar / cargar mapas">🗺️ Mapas</button>
+
+  <div class="toolbar-sep"></div>
+
+  <button class="tool-btn tool-btn--gold"   id="btn-export"      title="Exportar mapa completo como PNG">📷 Exportar</button>
+  <button class="tool-btn tool-btn--danger" id="btn-clear-floor" title="Borrar todas las baldosas">🗑️ Piso</button>
+  <button class="tool-btn tool-btn--danger" id="btn-reset-all"   title="Reiniciar todo el mapa">↺ Reset</button>
+</header>
+
+<!-- ── App Body ─────────────────────────────────────────────── -->
+<div class="app-body">
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!--  LEFT SIDEBAR                                           -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <aside class="sidebar">
+
+    <nav class="sidebar-tabs">
+      <button class="tab-btn active" data-tool="floor">
+        <span class="tab-icon">🏔️</span><span>Piso</span>
+      </button>
+      <button class="tab-btn" data-tool="env">
+        <span class="tab-icon">🌲</span><span>Entorno</span>
+      </button>
+      <button class="tab-btn" data-tool="characters">
+        <span class="tab-icon">⚔️</span><span>Héroes</span>
+      </button>
+      <button class="tab-btn" data-tool="enemies">
+        <span class="tab-icon">💀</span><span>Enemigos</span>
+      </button>
+    </nav>
+
+    <!-- ── Panel: Floor ──────────────────────────────────── -->
+    <div class="tab-panel active" id="panel-floor">
+      <div class="panel-header">🏔️ Baldosas de Terreno</div>
+      <div class="panel-scroll">
+        <p class="panel-hint">Selecciona un terreno y <strong>arrastra o clica</strong> el mapa. <strong>Rueda</strong> = zoom. <strong>Espacio+arrastrar</strong> = mover vista.</p>
+        <button class="erase-btn" data-layer="floor">🧹 Goma de borrar</button>
+        <div class="item-grid">
+          <!-- Original 8 -->
+          <button class="item-btn" data-id="snow"    style="--item-color:#a8d5e8"><div class="tile-swatch tile-snow"></div><span class="item-label">Nieve</span></button>
+          <button class="item-btn" data-id="sand"    style="--item-color:#d4a855"><div class="tile-swatch tile-sand"></div><span class="item-label">Arena</span></button>
+          <button class="item-btn" data-id="grass"   style="--item-color:#3a7c30"><div class="tile-swatch tile-grass"></div><span class="item-label">Pasto</span></button>
+          <button class="item-btn" data-id="dungeon" style="--item-color:#555566"><div class="tile-swatch tile-dungeon"></div><span class="item-label">Mazmorra</span></button>
+          <button class="item-btn" data-id="water"   style="--item-color:#2255cc"><div class="tile-swatch tile-water"></div><span class="item-label">Agua</span></button>
+          <button class="item-btn" data-id="wood"    style="--item-color:#8b5e3c"><div class="tile-swatch tile-wood"></div><span class="item-label">Madera</span></button>
+          <button class="item-btn" data-id="mud"     style="--item-color:#5c3d1e"><div class="tile-swatch tile-mud"></div><span class="item-label">Barro</span></button>
+          <button class="item-btn" data-id="luxury"  style="--item-color:#c8a820"><div class="tile-swatch tile-luxury"></div><span class="item-label">Az. Lujosos</span></button>
+          <!-- New 4 -->
+          <button class="item-btn" data-id="lava"    style="--item-color:#cc3300"><div class="tile-swatch tile-lava"></div><span class="item-label">Lava</span></button>
+          <button class="item-btn" data-id="ice"     style="--item-color:#99eebb"><div class="tile-swatch tile-ice"></div><span class="item-label">Hielo</span></button>
+          <button class="item-btn" data-id="dirt"    style="--item-color:#776655"><div class="tile-swatch tile-dirt"></div><span class="item-label">Tierra</span></button>
+          <button class="item-btn" data-id="stone"   style="--item-color:#889999"><div class="tile-swatch tile-stone"></div><span class="item-label">Piedra</span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Panel: Environment ──────────────────────────── -->
+    <div class="tab-panel" id="panel-env">
+      <div class="panel-header">🌲 Objetos del Entorno</div>
+      <div class="panel-scroll">
+        <p class="panel-hint"><strong>Clic</strong> para colocar · <strong>Arrastra</strong> para mover · <strong>Clic derecho</strong> para eliminar.</p>
+        <button class="erase-btn" data-layer="env">🧹 Eliminar objeto</button>
+        <div class="item-grid">
+          <!-- Original 8 -->
+          <button class="item-btn" data-id="tree"        style="--item-color:#2d6a2d"><span class="item-icon">🌲</span><span class="item-label">Árbol</span></button>
+          <button class="item-btn" data-id="rock"        style="--item-color:#7a7a7a"><span class="item-icon">🪨</span><span class="item-label">Roca</span></button>
+          <button class="item-btn" data-id="debris"      style="--item-color:#8b6340"><span class="item-icon">🪵</span><span class="item-label">Escombros</span></button>
+          <button class="item-btn" data-id="bush"        style="--item-color:#3a7a3a"><span class="item-icon">🌿</span><span class="item-label">Arbusto</span></button>
+          <button class="item-btn" data-id="bucket"      style="--item-color:#a05020"><span class="item-icon">🪣</span><span class="item-label">Balde</span></button>
+          <button class="item-btn" data-id="chest"       style="--item-color:#c08030"><span class="item-icon">🧰</span><span class="item-label">Cofre</span></button>
+          <button class="item-btn" data-id="barrel"      style="--item-color:#7a4020"><span class="item-icon">🛢️</span><span class="item-label">Barril</span></button>
+          <button class="item-btn" data-id="torch"       style="--item-color:#e06020"><span class="item-icon">🔥</span><span class="item-label">Antorcha</span></button>
+          <!-- New 12 -->
+          <button class="item-btn" data-id="wall"        style="--item-color:#888899"><span class="item-icon">🧱</span><span class="item-label">Pared</span></button>
+          <button class="item-btn" data-id="pillar"      style="--item-color:#9999aa"><span class="item-icon">🏛️</span><span class="item-label">Pilar</span></button>
+          <button class="item-btn" data-id="statue"      style="--item-color:#778877"><span class="item-icon">🗿</span><span class="item-label">Estatua</span></button>
+          <button class="item-btn" data-id="campfire"    style="--item-color:#dd6610"><span class="item-icon">🏕️</span><span class="item-label">Fogata</span></button>
+          <button class="item-btn" data-id="crystal"     style="--item-color:#4455cc"><span class="item-icon">💎</span><span class="item-label">Cristal</span></button>
+          <button class="item-btn" data-id="trap"        style="--item-color:#885533"><span class="item-icon">🪤</span><span class="item-label">Trampa</span></button>
+          <button class="item-btn" data-id="well"        style="--item-color:#667788"><span class="item-icon">⛲</span><span class="item-label">Pozo</span></button>
+          <button class="item-btn" data-id="candelabra"  style="--item-color:#cc9933"><span class="item-icon">🕯️</span><span class="item-label">Candelabro</span></button>
+          <button class="item-btn" data-id="mushroom"    style="--item-color:#882299"><span class="item-icon">🍄</span><span class="item-label">Champiñón</span></button>
+          <button class="item-btn" data-id="sarcophagus" style="--item-color:#556655"><span class="item-icon">⚰️</span><span class="item-label">Sarcófago</span></button>
+          <button class="item-btn" data-id="chains"      style="--item-color:#887766"><span class="item-icon">⛓️</span><span class="item-label">Cadenas</span></button>
+          <button class="item-btn" data-id="altar"       style="--item-color:#551133"><span class="item-icon">🕌</span><span class="item-label">Altar</span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Panel: Characters ──────────────────────────── -->
+    <div class="tab-panel" id="panel-characters">
+      <div class="panel-header">⚔️ Personajes Héroes</div>
+      <div class="count-header">
+        <span class="count-label">En el mapa:</span>
+        <span class="count-badge" id="char-count">0/6</span>
+      </div>
+      <div class="panel-scroll">
+        <p class="panel-hint">Máx. <strong>6 fichas</strong>. Clic para colocar · arrastra para mover · clic derecho para eliminar.</p>
+        <div class="item-grid item-grid--chars">
+          <button class="item-btn char-btn" data-id="warrior" style="--item-color:#cc2222">
+            <span class="char-icon">⚔️</span>
+            <div class="char-info"><span class="char-name">Guerrero</span><span class="char-hint">Tanque · 40 HP</span></div>
+          </button>
+          <button class="item-btn char-btn" data-id="mage" style="--item-color:#7722cc">
+            <span class="char-icon">🔮</span>
+            <div class="char-info"><span class="char-name">Mago</span><span class="char-hint">Arcano · 24 HP</span></div>
+          </button>
+          <button class="item-btn char-btn" data-id="healer" style="--item-color:#ccaa00">
+            <span class="char-icon">✨</span>
+            <div class="char-info"><span class="char-name">Curador</span><span class="char-hint">Soporte · 32 HP</span></div>
+          </button>
+          <button class="item-btn char-btn" data-id="ranger" style="--item-color:#228833">
+            <span class="char-icon">🏹</span>
+            <div class="char-info"><span class="char-name">Explorador</span><span class="char-hint">Distancia · 30 HP</span></div>
+          </button>
+          <button class="item-btn char-btn" data-id="rogue" style="--item-color:#116677">
+            <span class="char-icon">🗡️</span>
+            <div class="char-info"><span class="char-name">Pícaro</span><span class="char-hint">Furtivo · 28 HP</span></div>
+          </button>
+          <button class="item-btn char-btn" data-id="monk" style="--item-color:#cc6600">
+            <span class="char-icon">👊</span>
+            <div class="char-info"><span class="char-name">Artista Marcial</span><span class="char-hint">Ki · 34 HP</span></div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Panel: Enemies ──────────────────────────────── -->
+    <div class="tab-panel" id="panel-enemies">
+      <div class="panel-header">💀 Enemigos</div>
+      <div class="count-header">
+        <span class="count-label">En el mapa:</span>
+        <span class="count-badge" id="enemy-count">0/6</span>
+      </div>
+      <div class="panel-scroll">
+        <p class="panel-hint">Máx. <strong>6 fichas</strong>. Clic para colocar · arrastra para mover · clic derecho para eliminar.</p>
+        <div class="item-grid item-grid--chars">
+          <!-- Original 6 -->
+          <button class="item-btn char-btn" data-id="goblin"   style="--item-color:#226622"><span class="char-icon">👺</span><div class="char-info"><span class="char-name">Goblin</span><span class="char-hint">Ágil · 15 HP</span></div></button>
+          <button class="item-btn char-btn" data-id="orc"      style="--item-color:#553300"><span class="char-icon">👹</span><div class="char-info"><span class="char-name">Orco</span><span class="char-hint">Bruto · 30 HP</span></div></button>
+          <button class="item-btn char-btn" data-id="skeleton" style="--item-color:#777777"><span class="char-icon">💀</span><div class="char-info"><span class="char-name">Esqueleto</span><span class="char-hint">No-muerto · 18 HP</span></div></button>
+          <button class="item-btn char-btn" data-id="dragon"   style="--item-color:#cc2200"><span class="char-icon">🐉</span><div class="char-info"><span class="char-name">Dragón</span><span class="char-hint">Jefe · 80 HP</span></div></button>
+          <button class="item-btn char-btn" data-id="zombie"   style="--item-color:#335533"><span class="char-icon">🧟</span><div class="char-info"><span class="char-name">Zombie</span><span class="char-hint">Tenaz · 22 HP</span></div></button>
+          <button class="item-btn char-btn" data-id="demon"    style="--item-color:#550011"><span class="char-icon">😈</span><div class="char-info"><span class="char-name">Demonio</span><span class="char-hint">Averno · 50 HP</span></div></button>
+          <!-- New 8 —— sprite sheet -->
+          <button class="item-btn char-btn" data-id="spider"   style="--item-color:#330044"><span class="char-icon">🕷️</span><div class="char-info"><span class="char-name">Araña Gigante</span><span class="char-hint">Telaraña · 20 HP</span></div></button>
+          <button class="item-btn char-btn" data-id="troll"    style="--item-color:#1a4a1a"><span class="char-icon">🧌</span><div class="char-info"><span class="char-name">Troll</span><span class="char-hint">Regeneración · 45 HP</span></div></button>
+          <button class="item-btn char-btn" data-id="vampire"  style="--item-color:#550022"><span class="char-icon">🧛</span><div class="char-info"><span class="char-name">Vampiro</span><span class="char-hint">Drenaje vital · 55 HP</span></div></button>
+          <button class="item-btn char-btn" data-id="warlock"  style="--item-color:#1a1155"><span class="char-icon">🧙</span><div class="char-info"><span class="char-name">Hechicero Oscuro</span><span class="char-hint">Maldiciones · 35 HP</span></div></button>
+          <button class="item-btn char-btn" data-id="bandit"   style="--item-color:#443322"><span class="char-icon">🗡️</span><div class="char-info"><span class="char-name">Bandido</span><span class="char-hint">Emboscada · 15 HP</span></div></button>
+          <button class="item-btn char-btn" data-id="werewolf" style="--item-color:#444455"><span class="char-icon">🐺</span><div class="char-info"><span class="char-name">Hombre Lobo</span><span class="char-hint">Licántropo · 40 HP</span></div></button>
+          <button class="item-btn char-btn" data-id="griffon"  style="--item-color:#664422"><span class="char-icon">🦅</span><div class="char-info"><span class="char-name">Grifo</span><span class="char-hint">Vuelo · 38 HP</span></div></button>
+          <button class="item-btn char-btn" data-id="lich"     style="--item-color:#111133"><span class="char-icon">💀</span><div class="char-info"><span class="char-name">Lich</span><span class="char-hint">No-muerto arcano · 65 HP</span></div></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Layer Controls ─────────────────────────────── -->
+    <div class="layers-panel">
+      <div class="layers-title">🔒 Control de Capas</div>
+      <div class="layer-rows">
+        <div class="layer-row">
+          <span class="layer-icon">🏔️</span>
+          <span class="layer-name">Capa Piso</span>
+          <button class="layer-eye-btn"  data-layer="floor"      title="Mostrar/ocultar">👁️</button>
+          <button class="layer-lock-btn" data-layer="floor"      title="Fijar/desfijar">🔓</button>
+        </div>
+        <div class="layer-row">
+          <span class="layer-icon">🌲</span>
+          <span class="layer-name">Objetos Entorno</span>
+          <button class="layer-eye-btn"  data-layer="env"        title="Mostrar/ocultar">👁️</button>
+          <button class="layer-lock-btn" data-layer="env"        title="Fijar/desfijar">🔓</button>
+        </div>
+        <div class="layer-row">
+          <span class="layer-icon">⚔️</span>
+          <span class="layer-name">Personajes</span>
+          <button class="layer-eye-btn"  data-layer="characters" title="Mostrar/ocultar">👁️</button>
+          <button class="layer-lock-btn" data-layer="characters" title="Fijar/desfijar">🔓</button>
+        </div>
+        <div class="layer-row">
+          <span class="layer-icon">💀</span>
+          <span class="layer-name">Enemigos</span>
+          <button class="layer-eye-btn"  data-layer="enemies"    title="Mostrar/ocultar">👁️</button>
+          <button class="layer-lock-btn" data-layer="enemies"    title="Fijar/desfijar">🔓</button>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!--  CANVAS AREA                                            -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <main class="canvas-area" id="canvas-area">
+    <div class="canvas-wrapper" id="canvas-wrapper">
+      <canvas id="map-canvas"></canvas>
+    </div>
+
+    <!-- Zoom hint -->
+    <div class="canvas-hint" id="canvas-hint">
+      <span>🖱️ Rueda = zoom &nbsp;·&nbsp; Espacio+arrastrar = pan &nbsp;·&nbsp; Clic derecho = borrar</span>
+    </div>
+  </main>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!--  RIGHT PANEL                                            -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <aside class="right-panel" id="right-panel">
+
+    <!-- Panel header tabs -->
+    <div class="rpanel-tabs">
+      <button class="rpanel-tab active" data-panel="initiative" id="rpanel-tab-initiative">⚔️ Iniciativa</button>
+      <button class="rpanel-tab"        data-panel="maps"       id="rpanel-tab-maps">🗺️ Mapas</button>
+      <button class="rpanel-close" id="btn-close-rpanel" title="Cerrar panel">✕</button>
+    </div>
+
+    <!-- ── Initiative Content ───────────────────────────── -->
+    <div class="rpanel-content active" id="rpanel-initiative">
+
+      <div class="init-top-bar">
+        <div class="round-badge" id="initiative-round">Ronda 1</div>
+        <div class="init-nav-btns">
+          <button class="nav-btn" id="btn-init-prev" title="Turno anterior">◀</button>
+          <button class="nav-btn nav-btn--primary" id="btn-init-next" title="Siguiente turno">Siguiente ▶</button>
+        </div>
+      </div>
+
+      <div id="initiative-list" class="initiative-list"></div>
+
+      <div class="init-footer">
+        <button class="init-action-btn" id="btn-init-sync"     title="Añadir todos los personajes y enemigos del mapa">🔄 Sync desde mapa</button>
+        <button class="init-action-btn init-action-btn--gold" id="btn-init-roll-all" title="Tirar d20 para todos y ordenar">🎲 Tirar todos</button>
+        <button class="init-action-btn init-action-btn--danger" id="btn-init-clear" title="Borrar toda la iniciativa">🗑️ Limpiar</button>
+      </div>
+    </div>
+
+    <!-- ── Map Slots Content ─────────────────────────────── -->
+    <div class="rpanel-content" id="rpanel-maps">
+      <div class="rpanel-section-title">💾 Slots de guardado</div>
+      <p style="font-size:11px;color:var(--text-secondary);padding:0 12px 10px;line-height:1.5;">
+        El estado del mapa se guarda automáticamente. Usa estos slots para tener múltiples escenarios.
+      </p>
+      <div id="map-slots-list" class="map-slots-list"></div>
+    </div>
+
+  </aside>
+
+</div>
+
+<!-- ── Toasts ─────────────────────────────────────────────── -->
+<div id="toast-container"></div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
