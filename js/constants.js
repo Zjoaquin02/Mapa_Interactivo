@@ -6,7 +6,7 @@ export const TILE_SIZE      = 64;
 export const GRID_COLS      = 50;
 export const GRID_ROWS      = 35;
 export const MAX_HEROES     = 6;
-export const MAX_ENEMIES    = 6;
+export const MAX_ENEMIES    = 30;
 export const MAP_SLOT_COUNT = 6;
 export const ZOOM_MIN       = 0.15;
 export const ZOOM_MAX       = 3.0;
@@ -21,65 +21,76 @@ export const TERRAINS = [
   { id: 'wood',    label: 'Madera',            color: '#8b5e3c' },
   { id: 'mud',     label: 'Barro',             color: '#5c3d1e' },
   { id: 'luxury',  label: 'Azulejos Lujosos',  color: '#1a1a4e' },
+  { id: 'lava',    label: 'Lava',              color: '#cc4400' },
+  { id: 'ice',     label: 'Hielo',             color: '#99eebb' },
+  { id: 'dirt',    label: 'Tierra Seca',       color: '#776655' },
+  { id: 'stone',   label: 'Piedra',            color: '#889999' },
+  { id: 'toxic',   label: 'Pantano Tóxico',    color: '#44aa22' },
+  { id: 'void',    label: 'Abismo Astral',     color: '#110022' },
+  { id: 'cobble',  label: 'Adoquines',         color: '#555555' },
+  { id: 'magic',   label: 'Suelo Arcano',      color: '#441188' },
 ];
 
 // ── Environment Objects ───────────────────────────────────────
-// sheetRow/sheetCol refer to position in assets/env_objects_new.png (4 cols × 3 rows)
 export const ENV_OBJECTS = [
-  // Original 8
-  { id: 'tree',          label: 'Árbol',         icon: '🌲', color: '#2d6a2d', sheet: null },
-  { id: 'rock',          label: 'Roca',           icon: '🪨', color: '#7a7a7a', sheet: null },
-  { id: 'debris',        label: 'Escombros',      icon: '🪵', color: '#8b6340', sheet: null },
-  { id: 'bush',          label: 'Arbusto',        icon: '🌿', color: '#3a7a3a', sheet: null },
-  { id: 'bucket',        label: 'Balde',          icon: '🪣', color: '#a05020', sheet: null },
-  { id: 'chest',         label: 'Cofre',          icon: '🧰', color: '#c08030', sheet: null },
-  { id: 'barrel',        label: 'Barril',         icon: '🛢️', color: '#7a4020', sheet: null },
-  { id: 'torch',         label: 'Antorcha',       icon: '🔥', color: '#e06020', sheet: null },
-  // New 12 — use sheet image (4 cols × 3 rows)
-  { id: 'wall',          label: 'Pared',          icon: '🧱', color: '#888899', sheet: { row: 0, col: 0 } },
-  { id: 'pillar',        label: 'Pilar',          icon: '🏛️', color: '#9999aa', sheet: { row: 0, col: 1 } },
-  { id: 'statue',        label: 'Estatua',        icon: '🗿', color: '#778877', sheet: { row: 0, col: 2 } },
-  { id: 'campfire',      label: 'Fogata',         icon: '🏕️', color: '#dd6610', sheet: { row: 0, col: 3 } },
-  { id: 'crystal',       label: 'Cristal',        icon: '💎', color: '#4455cc', sheet: { row: 1, col: 0 } },
-  { id: 'trap',          label: 'Trampa',         icon: '🪤', color: '#885533', sheet: { row: 1, col: 1 } },
-  { id: 'well',          label: 'Pozo',           icon: '⛲', color: '#667788', sheet: { row: 1, col: 2 } },
-  { id: 'candelabra',    label: 'Candelabro',     icon: '🕯️', color: '#cc9933', sheet: { row: 1, col: 3 } },
-  { id: 'mushroom',      label: 'Champiñón',      icon: '🍄', color: '#882299', sheet: { row: 2, col: 0 } },
-  { id: 'sarcophagus',   label: 'Sarcófago',      icon: '⚰️', color: '#556655', sheet: { row: 2, col: 1 } },
-  { id: 'chains',        label: 'Cadenas',        icon: '⛓️', color: '#887766', sheet: { row: 2, col: 2 } },
-  { id: 'altar',         label: 'Altar',          icon: '🕌', color: '#331133', sheet: { row: 2, col: 3 } },
+  { id: 'tree',          label: 'Árbol',         icon: '🌲', color: '#2d6a2d', hasImage: true },
+  { id: 'rock',          label: 'Roca',           icon: '🪨', color: '#7a7a7a', hasImage: true },
+  { id: 'debris',        label: 'Escombros',      icon: '🪵', color: '#8b6340', hasImage: true },
+  { id: 'bush',          label: 'Arbusto',        icon: '🌿', color: '#3a7a3a', hasImage: true },
+  { id: 'bucket',        label: 'Balde',          icon: '🪣', color: '#a05020', hasImage: false },
+  { id: 'chest',         label: 'Cofre',          icon: '🧰', color: '#c08030', hasImage: false },
+  { id: 'barrel',        label: 'Barril',         icon: '🛢️', color: '#7a4020', hasImage: false },
+  { id: 'torch',         label: 'Antorcha',       icon: '🔥', color: '#e06020', hasImage: false },
+  { id: 'wall',          label: 'Pared',          icon: '🧱', color: '#888899', hasImage: false },
+  { id: 'pillar',        label: 'Pilar',          icon: '🏛️', color: '#9999aa', hasImage: false },
+  { id: 'statue',        label: 'Estatua',        icon: '🗿', color: '#778877', hasImage: false },
+  { id: 'campfire',      label: 'Fogata',         icon: '🏕️', color: '#dd6610', hasImage: false },
+  { id: 'crystal',       label: 'Cristal',        icon: '💎', color: '#4455cc', hasImage: false },
+  { id: 'trap',          label: 'Trampa',         icon: '🪤', color: '#885533', hasImage: false },
+  { id: 'well',          label: 'Pozo',           icon: '⛲', color: '#667788', hasImage: false },
+  { id: 'candelabra',    label: 'Candelabro',     icon: '🕯️', color: '#cc9933', hasImage: false },
+  { id: 'mushroom',      label: 'Champiñón',      icon: '🍄', color: '#882299', hasImage: false },
+  { id: 'sarcophagus',   label: 'Sarcófago',      icon: '⚰️', color: '#556655', hasImage: false },
+  { id: 'chains',        label: 'Cadenas',        icon: '⛓️', color: '#887766', hasImage: false },
+  { id: 'altar',         label: 'Altar',          icon: '🕌', color: '#331133', hasImage: false },
 ];
 
 // ── Character Classes ─────────────────────────────────────────
-// sheetRow/sheetCol: position in assets/characters_sheet.png (3 cols × 2 rows)
 export const CHARACTER_CLASSES = [
-  { id: 'warrior', label: 'Guerrero',        icon: '⚔️',  color: '#cc2222', border: '#ff4444', defaultHp: 40, sheetRow: 0, sheetCol: 0 },
-  { id: 'mage',    label: 'Mago',            icon: '🔮',  color: '#7722cc', border: '#aa44ff', defaultHp: 24, sheetRow: 0, sheetCol: 1 },
-  { id: 'healer',  label: 'Curador',         icon: '✨',  color: '#ccaa00', border: '#ffdd22', defaultHp: 32, sheetRow: 0, sheetCol: 2 },
-  { id: 'ranger',  label: 'Explorador',      icon: '🏹',  color: '#228833', border: '#44cc55', defaultHp: 30, sheetRow: 1, sheetCol: 0 },
-  { id: 'rogue',   label: 'Pícaro',          icon: '🗡️',  color: '#116677', border: '#22aacc', defaultHp: 28, sheetRow: 1, sheetCol: 1 },
-  { id: 'monk',    label: 'Artista Marcial', icon: '👊',  color: '#cc6600', border: '#ff9922', defaultHp: 34, sheetRow: 1, sheetCol: 2 },
+  { id: 'warrior', label: 'Guerrero',        icon: '⚔️',  color: '#cc2222', border: '#ff4444', defaultHp: 40, hasImage: false },
+  { id: 'mage',    label: 'Mago',            icon: '🔮',  color: '#7722cc', border: '#aa44ff', defaultHp: 24, hasImage: false },
+  { id: 'cleric',  label: 'Clérigo',         icon: '✨',  color: '#ccaa00', border: '#ffdd22', defaultHp: 32, hasImage: false },
+  { id: 'ranger',  label: 'Explorador',      icon: '🏹',  color: '#228833', border: '#44cc55', defaultHp: 30, hasImage: false },
+  { id: 'rogue',   label: 'Pícaro',          icon: '🗡️',  color: '#116677', border: '#22aacc', defaultHp: 28, hasImage: false },
+  { id: 'monk',    label: 'Artista Marcial', icon: '👊',  color: '#cc6600', border: '#ff9922', defaultHp: 34, hasImage: false },
+  // Nuevas clases usando emojis
+  { id: 'druid',     label: 'Druida',        icon: '🐻',  color: '#2d882d', border: '#44cc44', defaultHp: 32 },
+  { id: 'paladin',   label: 'Paladín',       icon: '🛡️',  color: '#ccccaa', border: '#eeeedd', defaultHp: 45 },
+  { id: 'bard',      label: 'Bardo',         icon: '🎸',  color: '#cc22aa', border: '#ff44dd', defaultHp: 28 },
+  { id: 'barbarian', label: 'Bárbaro',       icon: '🪓',  color: '#aa3311', border: '#dd4422', defaultHp: 50 },
+  { id: 'warlock_hero',label: 'Brujo',       icon: '🧿',  color: '#331144', border: '#551177', defaultHp: 30 },
+  { id: 'sorcerer',  label: 'Hechicero',     icon: '⚡',  color: '#1155aa', border: '#2288ff', defaultHp: 24 },
+  { id: 'artificer', label: 'Artífice',      icon: '⚙️',  color: '#aa6611', border: '#ffaa33', defaultHp: 30 },
 ];
 
 // ── Enemy Types ───────────────────────────────────────────────
-// Original 6 use emoji; new 8 use enemies_new.png (4 cols × 2 rows)
 export const ENEMY_TYPES = [
   // Original
-  { id: 'goblin',   label: 'Goblin',          icon: '👺', color: '#226622', border: '#44aa44', defaultHp: 15, sheet: null },
-  { id: 'orc',      label: 'Orco',            icon: '👹', color: '#553300', border: '#aa6600', defaultHp: 30, sheet: null },
-  { id: 'skeleton', label: 'Esqueleto',       icon: '💀', color: '#777777', border: '#cccccc', defaultHp: 18, sheet: null },
-  { id: 'dragon',   label: 'Dragón',          icon: '🐉', color: '#cc2200', border: '#ff4400', defaultHp: 80, sheet: null },
-  { id: 'zombie',   label: 'Zombie',          icon: '🧟', color: '#335533', border: '#557755', defaultHp: 22, sheet: null },
-  { id: 'demon',    label: 'Demonio',         icon: '😈', color: '#550011', border: '#cc0033', defaultHp: 50, sheet: null },
-  // New 8 — from assets/enemies_new.png (4×2)
-  { id: 'spider',   label: 'Araña Gigante',   icon: '🕷️', color: '#330044', border: '#aa33cc', defaultHp: 20, sheet: { row: 0, col: 0 } },
-  { id: 'troll',    label: 'Troll',           icon: '🧌', color: '#1a4a1a', border: '#33aa33', defaultHp: 45, sheet: { row: 0, col: 1 } },
-  { id: 'vampire',  label: 'Vampiro',         icon: '🧛', color: '#550022', border: '#cc2244', defaultHp: 55, sheet: { row: 0, col: 2 } },
-  { id: 'warlock',  label: 'Hechicero Oscuro',icon: '🧙', color: '#1a1155', border: '#4433cc', defaultHp: 35, sheet: { row: 0, col: 3 } },
-  { id: 'bandit',   label: 'Bandido',         icon: '🗡️', color: '#443322', border: '#997755', defaultHp: 15, sheet: { row: 1, col: 0 } },
-  { id: 'werewolf', label: 'Hombre Lobo',     icon: '🐺', color: '#444455', border: '#aaaacc', defaultHp: 40, sheet: { row: 1, col: 1 } },
-  { id: 'griffon',  label: 'Grifo',           icon: '🦅', color: '#664422', border: '#ddaa33', defaultHp: 38, sheet: { row: 1, col: 2 } },
-  { id: 'lich',     label: 'Lich',            icon: '💀', color: '#111133', border: '#eeeeff', defaultHp: 65, sheet: { row: 1, col: 3 } },
+  { id: 'goblin',   label: 'Goblin',          icon: '👺', color: '#226622', border: '#44aa44', defaultHp: 15 },
+  { id: 'orc',      label: 'Orco',            icon: '👹', color: '#553300', border: '#aa6600', defaultHp: 30 },
+  { id: 'skeleton', label: 'Esqueleto',       icon: '💀', color: '#777777', border: '#cccccc', defaultHp: 18 },
+  { id: 'dragon',   label: 'Dragón',          icon: '🐉', color: '#cc2200', border: '#ff4400', defaultHp: 80 },
+  { id: 'zombie',   label: 'Zombie',          icon: '🧟', color: '#335533', border: '#557755', defaultHp: 22 },
+  { id: 'demon',    label: 'Demonio',         icon: '😈', color: '#550011', border: '#cc0033', defaultHp: 50 },
+  // Nuevos 8 (imágenes individuales)
+  { id: 'spider',   label: 'Araña Gigante',   icon: '🕷️', color: '#330044', border: '#aa33cc', defaultHp: 20, hasImage: true },
+  { id: 'troll',    label: 'Troll',           icon: '🧌', color: '#1a4a1a', border: '#33aa33', defaultHp: 45, hasImage: true },
+  { id: 'vampire',  label: 'Vampiro',         icon: '🧛', color: '#550022', border: '#cc2244', defaultHp: 55, hasImage: true },
+  { id: 'warlock',  label: 'Hechicero Oscuro',icon: '🧙', color: '#1a1155', border: '#4433cc', defaultHp: 35, hasImage: true },
+  { id: 'bandit',   label: 'Bandido',         icon: '🗡️', color: '#443322', border: '#997755', defaultHp: 15, hasImage: true },
+  { id: 'werewolf', label: 'Hombre Lobo',     icon: '🐺', color: '#444455', border: '#aaaacc', defaultHp: 40, hasImage: true },
+  { id: 'griffon',  label: 'Grifo',           icon: '🦅', color: '#664422', border: '#ddaa33', defaultHp: 38, hasImage: true },
+  { id: 'lich',     label: 'Lich',            icon: '💀', color: '#111133', border: '#eeeeff', defaultHp: 65, hasImage: true },
 ];
 
 // ── Layer Definitions ─────────────────────────────────────────
@@ -88,4 +99,5 @@ export const LAYERS = {
   ENV:        { id: 'env',        label: 'Objetos Entorno', icon: '🌲', order: 1 },
   CHARACTERS: { id: 'characters', label: 'Personajes',      icon: '⚔️', order: 2 },
   ENEMIES:    { id: 'enemies',    label: 'Enemigos',        icon: '💀', order: 3 },
+  FOG:        { id: 'fog',        label: 'Capa Niebla',     icon: '🌫️', order: 4 },
 };

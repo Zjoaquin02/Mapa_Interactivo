@@ -24,6 +24,7 @@ Constructor de escenarios interactivo para campañas de Dungeons & Dragons.
 | Control | Acción |
 |---|---|
 | Clic sobre baldosa del panel → clic/arrastrar en el mapa | Pintar terreno |
+| **🖌️ Pincel 1x1 / 3x3** | Cambia el tamaño de la brocha para pintar o borrar |
 | Arrastrar sobre el mapa (con terreno seleccionado) | Pintar múltiples celdas |
 | Clic derecho sobre el mapa | Borrar baldosa |
 | Botón 🧹 Goma de borrar → clic/arrastrar | Borrar terreno |
@@ -41,6 +42,34 @@ Constructor de escenarios interactivo para campañas de Dungeons & Dragons.
 - 🧊 **Hielo** — Superficie cristalina y resbaladiza
 - 🌱 **Tierra** — Suelo seco y polvoriento
 - 🪨 **Piedra** — Adoquines rústicos y rocas lisas
+- 🧪 **Tóxico** — Pantano burbujeante de ácido verde
+- 🌌 **Abismo** — Vacío astral profundo con nebulosas y estrellas
+- 🛣️ **Adoquín** — Suelo urbano de piedra gris para ciudades
+- 🔮 **Arcano** — Suelo ritual morado con runas geométricas
+
+---
+
+## 🌫️ Capa Niebla de Guerra
+
+| Control | Acción |
+|---|---|
+| Clic/Arrastrar con brocha | Cubre o despeja la visión del mapa |
+| **🖌️ Pincel 1x1 / 3x3** | Cambia el tamaño de la brocha táctica |
+| ⬛ Cubrir Todo | Cubre el mapa completo de oscuridad total |
+| 👁️ Despejar | Borra toda la niebla de una sola vez |
+
+---
+
+## 🎨 Herramienta de Dibujo y Áreas de Efecto (AoE)
+
+Nueva pestaña **🎨 Dibujo** para marcar tácticas o hechizos en el tablero.
+
+| Herramienta | Acción |
+|---|---|
+| 🖊️ Mano Alzada | Dibuja trazos libres sobre el mapa (mira el color seleccionado) |
+| 🟠 Círculo | Clic y arrastra para definir el radio (Fuego, Hielo, Ácido, Arcano) |
+| 📐 Cono | Clic y arrastra para definir el alcance de un aliento o spray |
+| Clic derecho | Elimina un dibujo o área colocada |
 
 ---
 
@@ -52,30 +81,9 @@ Constructor de escenarios interactivo para campañas de Dungeons & Dragons.
 | Arrastrar objeto ya colocado | Mover objeto |
 | Clic derecho sobre objeto | Eliminar objeto |
 
-### Objetos disponibles (20 total)
-
-| Ícono | Objeto | Render |
-|---|---|---|
-| 🌲 | Árbol | Emoji |
-| 🪨 | Roca | Emoji |
-| 🪵 | Escombros | Emoji |
-| 🌿 | Arbusto | Emoji |
-| 🪣 | Balde | Emoji |
-| 🧰 | Cofre | Emoji |
-| 🛢️ | Barril | Emoji |
-| 🔥 | Antorcha | Emoji |
-| 🧱 | Pared | Sprite |
-| 🏛️ | Pilar | Sprite |
-| 🗿 | Estatua | Sprite |
-| 🏕️ | Fogata | Sprite |
-| 💎 | Cristal | Sprite |
-| 🪤 | Trampa | Sprite |
-| ⛲ | Pozo | Sprite |
-| 🕯️ | Candelabro | Sprite |
-| 🍄 | Champiñón | Sprite |
-| ⚰️ | Sarcófago | Sprite |
-| ⛓️ | Cadenas | Sprite |
-| 🕌 | Altar | Sprite |
+### Objetos destacados
+- **Nivel Sprite (Pixel Art):** Árbol, Roca, Escombros, Arbusto, Balde, Cofre.
+- **Estructuras y muebles:** Pared, Pilar, Estatua, Fogata, Pozo, Piedras, etc.
 
 ---
 
@@ -86,62 +94,19 @@ Constructor de escenarios interactivo para campañas de Dungeons & Dragons.
 | Seleccionar clase → clic en el mapa | Colocar ficha |
 | Arrastrar ficha ya colocada | Mover ficha |
 | Clic derecho sobre ficha | Eliminar ficha |
-| Máximo | **6 fichas simultáneas** (sin mínimo) |
+| **Estética** | Todos los héroes utilizan **Emojis** para una vista clara y clásica |
 
-### Clases disponibles
-| Ícono | Clase | HP Base |
-|---|---|---|
-| ⚔️ | Guerrero | 40 HP |
-| 🔮 | Mago | 24 HP |
-| ✨ | Curador | 32 HP |
-| 🏹 | Explorador | 30 HP |
-| 🗡️ | Pícaro | 28 HP |
-| 👊 | Artista Marcial | 34 HP |
-
-> Podés poner múltiples fichas de la misma clase (ej: 6 guerreros).
+### Todas las clases oficiales (13)
+⚔️ Guerrero, 🔮 Mago, ✨ Clérigo, 🏹 Explorador, 🗡️ Pícaro, 👊 Artista Marcial, 🐻 Druida, 🛡️ Paladín, 🎸 Bardo, 🪓 Bárbaro, 🧿 Brujo, ⚡ Hechicero, ⚙️ Artífice.
 
 ---
 
 ## 💀 Capa Enemigos
 
-Funciona igual que los héroes. Máximo **6 fichas**.
+Máximo **30 fichas**. Incluye enemigos básicos (Emojis) y jefes/monstruos especiales (Sprites).
 
-### Tipos disponibles (14 total)
-
-| Ícono | Enemigo | HP | Render |
-|---|---|---|---|
-| 👺 | Goblin | 15 HP | Emoji |
-| 👹 | Orco | 30 HP | Emoji |
-| 💀 | Esqueleto | 18 HP | Emoji |
-| 🐉 | Dragón | 80 HP | Emoji |
-| 🧟 | Zombie | 22 HP | Emoji |
-| 😈 | Demonio | 50 HP | Emoji |
-| 🕷️ | Araña Gigante | 20 HP | Sprite |
-| 🧌 | Troll | 45 HP | Sprite |
-| 🧛 | Vampiro | 55 HP | Sprite |
-| 🧙 | Hechicero Oscuro | 35 HP | Sprite |
-| 🗡️ | Bandido | 15 HP | Sprite |
-| 🐺 | Hombre Lobo | 40 HP | Sprite |
-| 🦅 | Grifo | 38 HP | Sprite |
-| 💀 | Lich | 65 HP | Sprite |
-
----
-
-## 🔒 Sistema de Capas
-
-Cada capa puede **fijarse** y **ocultarse** de forma independiente desde el panel inferior del sidebar.
-
-| Control | Acción |
-|---|---|
-| 🔓 (botón de candado) | Fijar la capa — impide edición accidental |
-| 🔒 (botón de candado activo) | Desfijar la capa para volver a editarla |
-| 👁️ (botón de ojo) | Ocultar/mostrar la capa en el mapa |
-
-### Capas
-1. **Capa Piso** — Baldosas de terreno
-2. **Objetos Entorno** — Árboles, rocas, cofres, etc.
-3. **Personajes** — Fichas de héroes
-4. **Enemigos** — Fichas de enemigos
+- **Básicos:** Goblin, Orco, Esqueleto, Dragón, Zombie, Demonio.
+- **Especiales:** Araña Gigante, Troll, Vampiro, Hechicero Oscuro, Bandido, Hombre Lobo, Grifo, Lich.
 
 ---
 
@@ -149,51 +114,35 @@ Cada capa puede **fijarse** y **ocultarse** de forma independiente desde el pane
 
 Acceso: botón **⚔️ Iniciativa** en la toolbar.
 
-| Control | Acción |
-|---|---|
-| 🔄 Sync desde mapa | Añade automáticamente todos los héroes y enemigos colocados |
-| 🎲 Tirar todos | Lanza d20 para cada combatiente y ordena por resultado |
-| 🎲 (botón individual) | Lanza d20 solo para ese combatiente |
-| ▲ / ▼ | Aumenta o disminuye la iniciativa `+1` / `-1` reordenando automáticamente la lista |
-| ▶ Siguiente / ◀ Anterior | Avanza o retrocede el turno |
-| −5 / −1 / +1 / +5 | Ajusta la vida (HP) actual del combatiente |
-| Clic en número máximo | Permite editar el **HP Máximo** de la ficha en la lista |
-| ✕ | Quita al combatiente de la iniciativa |
-| 🗑️ Limpiar | Borra toda la lista de iniciativa |
-
-> El combatiente con el turno activo tiene un anillo dorado parpadeante en su ficha del mapa.
+- **Sync Automático:** Trae todos los nombres y HP de los tokens en el mapa.
+- **Seguimiento de Turno:** Anillo dorado animado en el token del mapa que posee el turno activo.
+- **Gestión de Daño:** Botones de acceso rápido para curar o dañar fichas.
 
 ---
 
-## 🗺️ Sistema de Slots de Mapa
+## 💾 Gestión de Archivos y Guardado
 
-Acceso: botón **🗺️ Mapas** en la toolbar. Permite guardar hasta **6 escenarios distintos**.
+Acceso: botón **🗺️ Mapas** en la toolbar.
 
-| Control | Acción |
-|---|---|
-| 💾 Guardar aquí | Guarda el mapa actual en ese slot (pide nombre) |
-| 📂 Cargar | Carga el mapa guardado (reemplaza el actual) |
-| 🗑️ | Borra el slot |
+### ⬇️ Exportar / ⬆️ Subir JSON
+Permite guardar el estado **total** de tu campaña (vida, posición, iniciativa, dibujos) como un archivo `.json` en tu computadora y cargarlo en cualquier momento o sesión futura.
 
-> El mapa en progreso se guarda automáticamente en el navegador (`localStorage`).
+### 💾 Slots Rápidos
+Hasta **6 espacios** de guardado temporales en la memoria del navegador (`localStorage`).
 
----
-
-## 🛠️ Toolbar — Botones Generales
-
-| Botón | Acción |
-|---|---|
-| ⊞ Grilla | Muestra u oculta la cuadrícula del mapa |
-| 📷 Exportar | Descarga el mapa completo como imagen PNG |
-| 🗑️ Piso | Borra todas las baldosas del piso |
-| ↺ Reset | Reinicia el mapa completo (borra todo) |
+### ✨ Mapas de Plantilla
+Modelos prearmados (9 en total) incluyendo nuevos escenarios como **Pantano Tóxico**, **Calles Adoquinadas** y **Vacío Arcano**.
 
 ---
 
-## 📐 Información del Mapa
+## 🛠️ Toolbar y Motor
+- ⊞ **Grilla:** Alterna la cuadrícula.
+- 📷 **Exportar PNG:** Guarda una captura visual del mapa para compartir.
+- ⚡ **Optimización:** Motor con *Frustum Culling* activo (solo procesa lo que ves en pantalla para máximo rendimiento).
 
-- **Tamaño de grilla:** 50 × 35 celdas
-- **Tamaño de celda:** 64 × 64 px
-- **Tamaño total del mapa:** 3200 × 2240 px
-- **Zoom mínimo:** 15% · **Zoom máximo:** 300%
-- **Guardado:** Automático en `localStorage` del navegador
+---
+
+## 📐 Especificaciones
+- **Grilla:** 50 × 35 (3200 × 2240 px)
+- **Celda:** 64 × 64 px
+- **Compatibilidad:** 100% Offline tras la primera carga.

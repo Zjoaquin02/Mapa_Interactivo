@@ -2,6 +2,7 @@
 //  D&D Interactive Map Builder — Map Slots Panel
 // ============================================================
 import { state, getSlots, deleteSlot } from './state.js';
+import { PRESETS } from './presets.js';
 import { showToast } from './interactions.js';
 
 function timeAgo(ts) {
@@ -65,7 +66,37 @@ export function renderMapSlots() {
     container.appendChild(card);
   }
 
-  // Bind Load
+  // Divider for presets
+  const divider = document.createElement('div');
+  divider.className = 'rpanel-section-title';
+  divider.style.marginTop = '10px';
+  divider.style.flexShrink = '0';
+  divider.innerHTML = '✨ Mapas de Plantilla';
+  container.appendChild(divider);
+
+  const pstHint = document.createElement('p');
+  pstHint.style = 'font-size:11px;color:var(--text-secondary);padding:0 12px 10px;line-height:1.5;flex-shrink:0;';
+  pstHint.innerHTML = 'Modelos prearmados. Cárgalos y luego guárdalos en tus propios slots si deseas.';
+  container.appendChild(pstHint);
+
+  // Render presets
+  PRESETS.forEach((preset, presetIdx) => {
+    const card = document.createElement('div');
+    card.className = 'slot-card slot-card--used';
+    card.style.borderColor = 'rgba(232,184,72,0.3)';
+    
+    card.innerHTML = `
+      <div class="slot-header">
+        <span class="slot-index" style="background:rgba(232,184,72,0.15);color:var(--gold);border-color:rgba(232,184,72,0.3)">✦</span>
+        <span class="slot-name-display" style="color:var(--gold)">${preset.name}</span>
+      </div>
+      <div class="slot-actions">
+        <button class="slot-btn slot-btn--load preset-load-btn" data-pi="${presetIdx}" style="width:100%">📂 Cargar Modelo</button>
+      </div>`;
+    container.appendChild(card);
+  });
+
+  // Bind Load (User Slots)
   container.querySelectorAll('.slot-btn--load').forEach(btn => {
     btn.addEventListener('click', () => {
       const i = +btn.dataset.i;
@@ -74,6 +105,18 @@ export function renderMapSlots() {
         showToast(`Mapa "${getSlots()[i]?.name}" cargado`, 'info');
         renderMapSlots();
       }
+    });
+  });
+
+  // Bind Load Presets
+  container.querySelectorAll('.preset-load-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pi = +btn.dataset.pi;
+      if (!confirm(`¿Cargar la plantilla "${PRESETS[pi].name}"? Los cambios no guardados se perderán.`)) return;
+      const presetState = PRESETS[pi].generate();
+      state.loadPreset(presetState);
+      showToast(`Plantilla "${PRESETS[pi].name}" cargada`, 'info');
+      renderMapSlots();
     });
   });
 
@@ -113,4 +156,43 @@ export function bindMapSlotControls() {
   });
 
   renderMapSlots();
+
+  // ── JSON Export/Import ────────────────────────────────────
+  document.getElementById('btn-export-json')?.addEventListener('click', () => {
+    const rawData = state.getAll();
+    const dataStr = JSON.stringify(rawData);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    let title = rawData.mapName || 'Mapa';
+    title = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    link.download = `${title}.json`;
+    link.href = url;
+    link.click();
+    showToast('Archivo JSON descargado exitosamente.', 'info');
+  });
+
+  const importInput = document.getElementById('input-import-json');
+  document.getElementById('btn-import-json')?.addEventListener('click', () => {
+    importInput?.click();
+  });
+
+  importInput?.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const jsonData = JSON.parse(ev.target.result);
+        if (!confirm('¿Cargar este archivo JSON? Perderás cualquier progreso actual que no se haya guardado.')) return;
+        state.loadPreset(jsonData);
+        showToast('Mapa cargado desde tu PC con éxito.', 'info');
+        renderMapSlots();
+      } catch (err) {
+        showToast('El archivo JSON está corrupto o es inválido.', 'warning');
+      }
+      importInput.value = ''; // Reset input to allow selecting the same file again
+    };
+    reader.readAsText(file);
+  });
 }

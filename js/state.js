@@ -7,6 +7,7 @@ const DEFAULT_STATE = () => ({
   activeTool: 'floor',
   activeItem: null,
   isErasing:  false,
+  brushSize:  1,
 
   mapName: 'Nuevo Mapa',
 
@@ -17,12 +18,17 @@ const DEFAULT_STATE = () => ({
     env:        { locked: false, visible: true },
     characters: { locked: false, visible: true },
     enemies:    { locked: false, visible: true },
+    fog:        { locked: false, visible: true },
+    draw:       { locked: false, visible: true },
   },
 
+  floorRevision: 0,
   floorGrid:  {},
+  fogGrid:    {},
   envObjects: [],
   characters: [],
   enemies:    [],
+  drawings:   [],
 
   initiative: {
     entries:      [],   // [{ uid, name, icon, color, border, type, roll, hp, maxHp }]
@@ -53,8 +59,13 @@ class StateManager {
     this._state = this._load() || DEFAULT_STATE();
     // Ensure viewport exists for older saves
     if (!this._state.viewport)   this._state.viewport   = DEFAULT_STATE().viewport;
+    if (this._state.floorRevision === undefined) this._state.floorRevision = 0;
     if (!this._state.initiative) this._state.initiative = DEFAULT_STATE().initiative;
     if (!this._state.mapName)    this._state.mapName    = DEFAULT_STATE().mapName;
+    if (!this._state.fogGrid)    this._state.fogGrid    = {};
+    if (!this._state.layers.fog) this._state.layers.fog = { locked: false, visible: true };
+    if (!this._state.drawings)   this._state.drawings   = [];
+    if (!this._state.layers.draw) this._state.layers.draw = { locked: false, visible: true };
     this._listeners = [];
   }
 
@@ -69,6 +80,7 @@ class StateManager {
   setActiveTool(tool) { this._state.activeTool = tool;  this._notify('activeTool'); }
   setActiveItem(id)   { this._state.activeItem = id;    this._notify('activeItem'); }
   setErasing(val)     { this._state.isErasing  = val;   this._notify('isErasing'); }
+  setBrushSize(size)  { this._state.brushSize  = size;  this._notify('brushSize'); }
   setMapName(name)    { this._state.mapName = name;      this._notify('mapName'); this._save(); }
 
   // ── Viewport ──────────────────────────────────────────────
@@ -98,17 +110,97 @@ class StateManager {
   paintTile(col, row, terrainId) {
     if (this.isLayerLocked('floor')) return false;
     this._state.floorGrid[`${col},${row}`] = terrainId;
+    this._state.floorRevision++;
     this._notify('floorGrid'); this._save(); return true;
   }
   eraseTile(col, row) {
     if (this.isLayerLocked('floor')) return false;
     delete this._state.floorGrid[`${col},${row}`];
+    this._state.floorRevision++;
     this._notify('floorGrid'); this._save(); return true;
   }
   clearFloor() {
     if (this.isLayerLocked('floor')) return false;
     this._state.floorGrid = {};
+    this._state.floorRevision++;
     this._notify('floorGrid'); this._save(); return true;
+  }
+
+  // ── Fog ───────────────────────────────────────────────────
+  paintFog(col, row) {
+    const key = `${col},${row}`;
+    if (!this._state.fogGrid[key]) {
+      this._state.fogGrid[key] = true;
+      this._notify('floorGrid');
+      this._save();
+    }
+  }
+
+  eraseFog(col, row) {
+    const key = `${col},${row}`;
+    if (this._state.fogGrid[key]) {
+      delete this._state.fogGrid[key];
+      this._notify('floorGrid');
+      this._save();
+    }
+  }
+
+
+  fillFog() {
+    for (let c = 0; c < 50; c++) {
+      for (let r = 0; r < 35; r++) {
+        this._state.fogGrid[`${c},${r}`] = true;
+      }
+    }
+    this._notify('all');
+    this._save();
+  }
+
+  clearFog() {
+    this._state.fogGrid = {};
+    this._notify('all');
+    this._save();
+  }
+
+  // ── Drawings & AoE ────────────────────────────────────────
+  addDrawing(shape, color, originX, originY) {
+    if (this.isLayerLocked('draw')) return null;
+    const uid = ++this._state._uidCounter;
+    this._state.drawings.push({ 
+      uid, shape, color, 
+      x: originX, y: originY, 
+      radius: 0, angle: 0, 
+      points: [{x: originX, y: originY}] 
+    });
+    this._notify('drawings'); 
+    return uid;
+  }
+
+  updateDrawing(uid, updates) {
+    if (this.isLayerLocked('draw')) return;
+    const d = this._state.drawings.find(d => d.uid === uid);
+    if (!d) return;
+    if (updates.radius !== undefined) d.radius = updates.radius;
+    if (updates.angle !== undefined)  d.angle = updates.angle;
+    if (updates.newPoint) d.points.push(updates.newPoint);
+    this._notify('drawings');
+  }
+
+  finalizeDrawing() {
+    // Only invoke save on shape completion to avoid massive localstorage writes on mousemove
+    this._save();
+  }
+
+  removeDrawing(uid) {
+    if (this.isLayerLocked('draw')) return false;
+    this._state.drawings = this._state.drawings.filter(d => d.uid !== uid);
+    this._notify('drawings'); this._save(); return true;
+  }
+
+  clearDrawings() {
+    if (this.isLayerLocked('draw')) return false;
+    this._state.drawings = [];
+    this._notify('drawings'); this._save(); return true;
   }
 
   // ── Env Objects ───────────────────────────────────────────
@@ -281,15 +373,34 @@ class StateManager {
       if (!this._state.initiative) this._state.initiative = DEFAULT_STATE().initiative;
       if (!this._state.viewport)   this._state.viewport   = DEFAULT_STATE().viewport;
       if (!this._state.mapName)    this._state.mapName    = DEFAULT_STATE().mapName;
+      if (!this._state.fogGrid)    this._state.fogGrid    = {};
+      if (!this._state.layers.fog) this._state.layers.fog = { locked: false, visible: true };
+      if (!this._state.drawings)   this._state.drawings   = [];
+      if (!this._state.layers.draw) this._state.layers.draw = { locked: false, visible: true };
+      this._state.floorRevision++;
       this._notify('all');
       this._save();
       return true;
     } catch { return false; }
   }
 
+  loadPreset(presetState) {
+    this._state = presetState;
+    if (!this._state.initiative) this._state.initiative = { entries: [], currentIndex: -1, round: 1 };
+    if (!this._state.viewport)   this._state.viewport   = { zoom: 0.8, panX: 40, panY: 40 };
+    if (!this._state.fogGrid)    this._state.fogGrid    = {};
+    if (!this._state.layers.fog) this._state.layers.fog = { locked: false, visible: true };
+    if (!this._state.drawings)   this._state.drawings   = [];
+    if (!this._state.layers.draw) this._state.layers.draw = { locked: false, visible: true };
+    this._state.floorRevision++;
+    this._notify('all');
+    this._save();
+  }
+
   // ── Reset ─────────────────────────────────────────────────
   resetAll() {
     this._state = DEFAULT_STATE();
+    this._state.floorRevision++;
     this._notify('all'); this._save();
   }
 

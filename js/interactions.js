@@ -33,6 +33,24 @@ function hitTestTokens(tokens, pos, size = 48) {
   return null;
 }
 
+function hitTestDrawings(drawings, pos) {
+  for (let i = drawings.length - 1; i >= 0; i--) {
+    const d = drawings[i];
+    if (d.shape === 'circle' || d.shape === 'cone') {
+      const dx = pos.x - d.x;
+      const dy = pos.y - d.y;
+      if (Math.sqrt(dx*dx + dy*dy) <= Math.max(20, d.radius)) return d;
+    } else if (d.shape === 'path') {
+      for (const p of d.points) {
+        const dx = pos.x - p.x;
+        const dy = pos.y - p.y;
+        if (Math.sqrt(dx*dx + dy*dy) <= 15) return d;
+      }
+    }
+  }
+  return null;
+}
+
 // ── Toast ────────────────────────────────────────────────
 export function showToast(msg, type = 'info') {
   const t = document.createElement('div');
@@ -45,11 +63,12 @@ export function showToast(msg, type = 'info') {
 
 // ── Main ─────────────────────────────────────────────────
 export function bindInteractions(canvas, renderer, onUpdate) {
-  let painting  = false;
-  let dragging  = null;  // { layer, uid, offsetX, offsetY }
-  let isPanning = false;
-  let panStart  = null;  // { screenX, screenY, startPanX, startPanY }
-  let isSpaceDown = false;
+  let painting   = false;
+  let dragging   = null;  // { layer, uid, offsetX, offsetY }
+  let drawingUID = null;
+  let isPanning  = false;
+  let panStart   = null;  // { screenX, screenY, startPanX, startPanY }
+  let isSpaceDown= false;
   // Touch pinch state
   let pinchStart = null;
 
@@ -128,7 +147,13 @@ export function bindInteractions(canvas, renderer, onUpdate) {
 
     if (tool === 'floor') {
       painting = true;
-      state.get('isErasing') ? state.eraseTile(cell.col, cell.row) : (item && state.paintTile(cell.col, cell.row, item));
+      const bs = state.get('brushSize') || 1;
+      const offset = Math.floor(bs/2);
+      for(let dr = -offset; dr <= offset; dr++){
+        for(let dc = -offset; dc <= offset; dc++){
+            state.get('isErasing') ? state.eraseTile(cell.col+dc, cell.row+dr) : (item && state.paintTile(cell.col+dc, cell.row+dr, item));
+        }
+      }
       onUpdate(); return;
     }
 
@@ -154,7 +179,41 @@ export function bindInteractions(canvas, renderer, onUpdate) {
       if (hit) { if (!state.isLayerLocked('enemies')) dragging = { layer: 'enemies', uid: hit.uid, offsetX: pos.x - hit.x, offsetY: pos.y - hit.y }; return; }
       if (item && !state.isLayerLocked('enemies')) {
         const r = state.addEnemy(item, pos.x - 26, pos.y - 26);
-        r === 'max' ? showToast('¡Máximo 6 enemigos en el mapa!', 'warning') : onUpdate();
+        r === 'max' ? showToast('¡Máximo 30 enemigos en el mapa!', 'warning') : onUpdate();
+      }
+      return;
+    }
+
+    if (tool === 'fog') {
+      painting = true;
+      if (state.isLayerLocked('fog') || !state.getAll().layers.fog.visible) {
+        showToast('La capa de Niebla está oculta o bloqueada.', 'warning');
+        return;
+      }
+      const bs = state.get('brushSize') || 1;
+      const offset = Math.floor(bs/2);
+      for(let dr = -offset; dr <= offset; dr++){
+        for(let dc = -offset; dc <= offset; dc++){
+            state.get('isErasing') ? state.eraseFog(cell.col+dc, cell.row+dr) : state.paintFog(cell.col+dc, cell.row+dr);
+        }
+      }
+      onUpdate(); return;
+    }
+
+    if (tool === 'draw') {
+      if (state.isLayerLocked('draw') || !state.getAll().layers.draw.visible) {
+        showToast('La capa de dibujo está oculta o bloqueada.', 'warning');
+        return;
+      }
+      if (state.get('isErasing')) {
+        const hit = hitTestDrawings(state.getAll().drawings, pos);
+        if (hit) { state.removeDrawing(hit.uid); onUpdate(); }
+        return;
+      }
+      if (item) {
+        const [shape, color] = item.split('_');
+        drawingUID = state.addDrawing(shape, color, pos.x, pos.y);
+        onUpdate();
       }
       return;
     }
@@ -172,9 +231,42 @@ export function bindInteractions(canvas, renderer, onUpdate) {
       const tool = state.get('activeTool');
       const item = state.get('activeItem');
       if (tool === 'floor') {
-        state.get('isErasing') ? state.eraseTile(cell.col, cell.row) : (item && state.paintTile(cell.col, cell.row, item));
+        const bs = state.get('brushSize') || 1;
+        const offset = Math.floor(bs/2);
+        for(let dr = -offset; dr <= offset; dr++){
+          for(let dc = -offset; dc <= offset; dc++){
+              state.get('isErasing') ? state.eraseTile(cell.col+dc, cell.row+dr) : (item && state.paintTile(cell.col+dc, cell.row+dr, item));
+          }
+        }
         onUpdate();
       }
+      if (tool === 'fog' && !state.isLayerLocked('fog') && state.getAll().layers.fog.visible) {
+        const bs = state.get('brushSize') || 1;
+        const offset = Math.floor(bs/2);
+        for(let dr = -offset; dr <= offset; dr++){
+          for(let dc = -offset; dc <= offset; dc++){
+              state.get('isErasing') ? state.eraseFog(cell.col+dc, cell.row+dr) : state.paintFog(cell.col+dc, cell.row+dr);
+          }
+        }
+        onUpdate();
+      }
+      return;
+    }
+
+    if (drawingUID) {
+      const d = state.getAll().drawings.find(x => x.uid === drawingUID);
+      if (d) {
+        if (d.shape === 'path') {
+          state.updateDrawing(drawingUID, { newPoint: {x: pos.x, y: pos.y} });
+        } else if (d.shape === 'circle') {
+          const dx = pos.x - d.x; const dy = pos.y - d.y;
+          state.updateDrawing(drawingUID, { radius: Math.sqrt(dx*dx + dy*dy) });
+        } else if (d.shape === 'cone') {
+          const dx = pos.x - d.x; const dy = pos.y - d.y;
+          state.updateDrawing(drawingUID, { radius: Math.sqrt(dx*dx + dy*dy), angle: Math.atan2(dy, dx) });
+        }
+      }
+      onUpdate();
       return;
     }
 
@@ -191,10 +283,12 @@ export function bindInteractions(canvas, renderer, onUpdate) {
   // ── Mouse Up ─────────────────────────────────────────────
   canvas.addEventListener('mouseup', e => {
     if (e.button === 1 || isPanning) { endPan(); return; }
+    if (drawingUID) { state.finalizeDrawing(); drawingUID = null; }
     painting = false; dragging = null;
   });
   canvas.addEventListener('mouseleave', () => {
     if (isPanning) endPan();
+    if (drawingUID) { state.finalizeDrawing(); drawingUID = null; }
     painting = false; dragging = null;
     renderer.hoverCell = null; onUpdate();
   });
@@ -204,10 +298,26 @@ export function bindInteractions(canvas, renderer, onUpdate) {
     e.preventDefault();
     const pos  = getMapPos(canvas, e);
     const tool = state.get('activeTool');
-    if (tool === 'floor')      { const c = posToCell(pos); state.eraseTile(c.col, c.row); onUpdate(); }
+    if (tool === 'floor')      { 
+      const c = posToCell(pos);
+      const bs = state.get('brushSize') || 1;
+      const offset = Math.floor(bs/2);
+      for(let dr = -offset; dr <= offset; dr++) for(let dc = -offset; dc <= offset; dc++) state.eraseTile(c.col+dc, c.row+dr);
+      onUpdate(); 
+    }
+    if (tool === 'fog')        { 
+      const c = posToCell(pos); 
+      if(!state.isLayerLocked('fog')) {
+        const bs = state.get('brushSize') || 1;
+        const offset = Math.floor(bs/2);
+        for(let dr = -offset; dr <= offset; dr++) for(let dc = -offset; dc <= offset; dc++) state.eraseFog(c.col+dc, c.row+dr);
+      }
+      onUpdate(); 
+    }
     if (tool === 'env')        { const h = hitTestTokens(state.getAll().envObjects,  pos, 44); if (h) { state.removeEnvObject(h.uid);  onUpdate(); } }
     if (tool === 'characters') { const h = hitTestTokens(state.getAll().characters,  pos, 52); if (h) { state.removeCharacter(h.uid);   onUpdate(); } }
     if (tool === 'enemies')    { const h = hitTestTokens(state.getAll().enemies,     pos, 52); if (h) { state.removeEnemy(h.uid);       onUpdate(); } }
+    if (tool === 'draw')       { const h = hitTestDrawings(state.getAll().drawings,  pos); if (h) { state.removeDrawing(h.uid); onUpdate(); } }
   });
 
   // ── Touch Pinch Zoom ────────────────────────────────────
@@ -239,8 +349,42 @@ export function bindInteractions(canvas, renderer, onUpdate) {
       const cell = posToCell(pos);
       renderer.hoverCell = cell;
       if (painting) {
+        const tool = state.get('activeTool');
         const item = state.get('activeItem');
-        state.get('isErasing') ? state.eraseTile(cell.col, cell.row) : (item && state.paintTile(cell.col, cell.row, item));
+        if (tool === 'floor') {
+            const bs = state.get('brushSize') || 1;
+            const offset = Math.floor(bs/2);
+            for(let dr = -offset; dr <= offset; dr++){
+              for(let dc = -offset; dc <= offset; dc++){
+                  state.get('isErasing') ? state.eraseTile(cell.col+dc, cell.row+dr) : (item && state.paintTile(cell.col+dc, cell.row+dr, item));
+              }
+            }
+            onUpdate();
+        }
+        if (tool === 'fog' && !state.isLayerLocked('fog') && state.getAll().layers.fog.visible) {
+            const bs = state.get('brushSize') || 1;
+            const offset = Math.floor(bs/2);
+            for(let dr = -offset; dr <= offset; dr++){
+              for(let dc = -offset; dc <= offset; dc++){
+                  state.get('isErasing') ? state.eraseFog(cell.col+dc, cell.row+dr) : state.paintFog(cell.col+dc, cell.row+dr);
+              }
+            }
+            onUpdate();
+        }
+      }
+      if (drawingUID) {
+        const d = state.getAll().drawings.find(x => x.uid === drawingUID);
+        if (d) {
+          if (d.shape === 'path') {
+            state.updateDrawing(drawingUID, { newPoint: {x: pos.x, y: pos.y} });
+          } else if (d.shape === 'circle') {
+            const dx = pos.x - d.x; const dy = pos.y - d.y;
+            state.updateDrawing(drawingUID, { radius: Math.sqrt(dx*dx + dy*dy) });
+          } else if (d.shape === 'cone') {
+            const dx = pos.x - d.x; const dy = pos.y - d.y;
+            state.updateDrawing(drawingUID, { radius: Math.sqrt(dx*dx + dy*dy), angle: Math.atan2(dy, dx) });
+          }
+        }
         onUpdate();
       }
       if (dragging) {
@@ -254,5 +398,8 @@ export function bindInteractions(canvas, renderer, onUpdate) {
     }
   }, { passive: false });
 
-  canvas.addEventListener('touchend', () => { painting = false; dragging = null; pinchStart = null; });
+  canvas.addEventListener('touchend', () => { 
+    if (drawingUID) { state.finalizeDrawing(); drawingUID = null; }
+    painting = false; dragging = null; pinchStart = null; 
+  });
 }

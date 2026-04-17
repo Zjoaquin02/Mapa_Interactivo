@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <h2>objects_sheet.png</h2>
+  <img id="img1" src="objects_sheet.png" style="border: 1px solid red; image-rendering: pixelated; width: 400px;">
+  <p id="info1"></p>
+  <h2>env_objects_new.png</h2>
+  <img id="img2" src="env_objects_new.png" style="border: 1px solid blue; image-rendering: pixelated; width: 400px;">
+  <p id="info2"></p>
+  <script>
+    window.onload = () => {
+      const img1 = document.getElementById('img1');
+      const img2 = document.getElementById('img2');
+      document.getElementById('info1').innerText = img1.naturalWidth + 'x' + img1.naturalHeight;
+      document.getElementById('info2').innerText = img2.naturalWidth + 'x' + img2.naturalHeight;
+    };
+  </script>
+</body>
+</html>

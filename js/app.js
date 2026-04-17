@@ -96,6 +96,16 @@ document.querySelectorAll('.erase-btn').forEach(btn => {
   });
 });
 
+// ── Brush Size Buttons ────────────────────────────────────
+document.querySelectorAll('.brush-size-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const size = btn.dataset.size;
+    document.querySelectorAll('.brush-size-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll(`.brush-size-btn[data-size="${size}"]`).forEach(b => b.classList.add('active'));
+    state.setBrushSize(parseInt(size, 10));
+  });
+});
+
 // ── Layer Controls ────────────────────────────────────────
 document.querySelectorAll('.layer-lock-btn').forEach(btn => {
   btn.addEventListener('click', () => { state.toggleLayerLock(btn.dataset.layer); updateLayerUI(); render(); });
@@ -130,6 +140,14 @@ document.getElementById('btn-clear-floor')?.addEventListener('click', () => {
   if (confirm('¿Borrar todas las baldosas del piso?')) { state.clearFloor(); render(); }
 });
 
+document.getElementById('btn-fill-fog')?.addEventListener('click', () => {
+  state.fillFog(); render();
+});
+
+document.getElementById('btn-clear-fog')?.addEventListener('click', () => {
+  state.clearFog(); render();
+});
+
 document.getElementById('btn-reset-all')?.addEventListener('click', () => {
   if (confirm('¿Reiniciar el mapa completo? Se perderán todos los datos.')) {
     state.resetAll(); updateLayerUI(); render();
@@ -150,6 +168,7 @@ document.getElementById('btn-export')?.addEventListener('click', () => {
   state.setViewport(1, 0, 0);
   const tempRenderer = new MapRenderer(exportCanvas);
   tempRenderer.showGrid = renderer.showGrid;
+  tempRenderer.exportMode = true; // Signals the renderer to make fog entirely opaque
   tempRenderer.render();
   state.setViewport(vp.zoom, vp.panX, vp.panY);
 
@@ -207,7 +226,7 @@ state.subscribe((key, st) => {
   if (key === 'enemies' || key === 'all') {
     const n = st.enemies.length;
     const el = document.getElementById('enemy-count');
-    if (el) { el.textContent = `${n}/6`; el.className = n >= 6 ? 'count-badge count-badge--full' : 'count-badge'; }
+    if (el) { el.textContent = `${n}/30`; el.className = n >= 30 ? 'count-badge count-badge--full' : 'count-badge'; }
   }
   if (key === 'layers' || key === 'all') updateLayerUI();
   if (key === 'viewport' || key === 'all') updateZoomDisplay();

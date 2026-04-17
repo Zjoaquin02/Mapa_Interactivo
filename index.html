@@ -56,6 +56,12 @@
       <button class="tab-btn" data-tool="enemies">
         <span class="tab-icon">💀</span><span>Enemigos</span>
       </button>
+      <button class="tab-btn" data-tool="fog">
+        <span class="tab-icon">🌫️</span><span>Niebla</span>
+      </button>
+      <button class="tab-btn" data-tool="draw">
+        <span class="tab-icon">🖌️</span><span>Dibujo</span>
+      </button>
     </nav>
 
     <!-- ── Panel: Floor ──────────────────────────────────── -->
@@ -63,6 +69,12 @@
       <div class="panel-header">🏔️ Baldosas de Terreno</div>
       <div class="panel-scroll">
         <p class="panel-hint">Selecciona un terreno y <strong>arrastra o clica</strong> el mapa. <strong>Rueda</strong> = zoom. <strong>Espacio+arrastrar</strong> = mover vista.</p>
+        
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+          <button class="slot-btn brush-size-btn active" data-size="1" style="flex:1">🖌️ Pincel 1x1</button>
+          <button class="slot-btn brush-size-btn" data-size="3" style="flex:1">🖌️ Pincel 3x3</button>
+        </div>
+
         <button class="erase-btn" data-layer="floor">🧹 Goma de borrar</button>
         <div class="item-grid">
           <!-- Original 8 -->
@@ -79,6 +91,11 @@
           <button class="item-btn" data-id="ice"     style="--item-color:#99eebb"><div class="tile-swatch tile-ice"></div><span class="item-label">Hielo</span></button>
           <button class="item-btn" data-id="dirt"    style="--item-color:#776655"><div class="tile-swatch tile-dirt"></div><span class="item-label">Tierra</span></button>
           <button class="item-btn" data-id="stone"   style="--item-color:#889999"><div class="tile-swatch tile-stone"></div><span class="item-label">Piedra</span></button>
+          <!-- New 4 Expansion -->
+          <button class="item-btn" data-id="toxic"   style="--item-color:#44aa22"><div class="tile-swatch" style="background:#44aa22"></div><span class="item-label">Tóxico</span></button>
+          <button class="item-btn" data-id="void"    style="--item-color:#110022"><div class="tile-swatch" style="background:#110022"></div><span class="item-label">Abismo</span></button>
+          <button class="item-btn" data-id="cobble"  style="--item-color:#555555"><div class="tile-swatch" style="background:#555555"></div><span class="item-label">Adoquín</span></button>
+          <button class="item-btn" data-id="magic"   style="--item-color:#441188"><div class="tile-swatch" style="background:#441188"></div><span class="item-label">Arcano</span></button>
         </div>
       </div>
     </div>
@@ -134,21 +151,50 @@
             <span class="char-icon">🔮</span>
             <div class="char-info"><span class="char-name">Mago</span><span class="char-hint">Arcano · 24 HP</span></div>
           </button>
-          <button class="item-btn char-btn" data-id="healer" style="--item-color:#ccaa00">
+          <button class="item-btn char-btn" data-id="cleric" style="--item-color:#ccaa00">
             <span class="char-icon">✨</span>
-            <div class="char-info"><span class="char-name">Curador</span><span class="char-hint">Soporte · 32 HP</span></div>
+            <div class="char-info"><span class="char-name">Clérigo</span><span class="char-hint">Soporte · 32 HP</span></div>
           </button>
           <button class="item-btn char-btn" data-id="ranger" style="--item-color:#228833">
             <span class="char-icon">🏹</span>
-            <div class="char-info"><span class="char-name">Explorador</span><span class="char-hint">Distancia · 30 HP</span></div>
+            <div class="char-info"><span class="char-name">Explorador</span><span class="char-hint">Rango · 30 HP</span></div>
           </button>
           <button class="item-btn char-btn" data-id="rogue" style="--item-color:#116677">
             <span class="char-icon">🗡️</span>
-            <div class="char-info"><span class="char-name">Pícaro</span><span class="char-hint">Furtivo · 28 HP</span></div>
+            <div class="char-info"><span class="char-name">Pícaro</span><span class="char-hint">Letal · 28 HP</span></div>
           </button>
           <button class="item-btn char-btn" data-id="monk" style="--item-color:#cc6600">
             <span class="char-icon">👊</span>
-            <div class="char-info"><span class="char-name">Artista Marcial</span><span class="char-hint">Ki · 34 HP</span></div>
+            <div class="char-info"><span class="char-name">Artista Mar.</span><span class="char-hint">Ágil · 34 HP</span></div>
+          </button>
+          <!-- Additional Classic Classes -->
+          <button class="item-btn char-btn" data-id="druid" style="--item-color:#2d882d">
+            <span class="char-icon">🐻</span>
+            <div class="char-info"><span class="char-name">Druida</span><span class="char-hint">Magia/Bestia · 32 HP</span></div>
+          </button>
+          <button class="item-btn char-btn" data-id="paladin" style="--item-color:#ccccaa">
+            <span class="char-icon">🛡️</span>
+            <div class="char-info"><span class="char-name">Paladín</span><span class="char-hint">Aura/Tanque · 45 HP</span></div>
+          </button>
+          <button class="item-btn char-btn" data-id="bard" style="--item-color:#cc22aa">
+            <span class="char-icon">🎸</span>
+            <div class="char-info"><span class="char-name">Bardo</span><span class="char-hint">Soporte/Arte · 28 HP</span></div>
+          </button>
+          <button class="item-btn char-btn" data-id="barbarian" style="--item-color:#aa3311">
+            <span class="char-icon">🪓</span>
+            <div class="char-info"><span class="char-name">Bárbaro</span><span class="char-hint">Furia · 50 HP</span></div>
+          </button>
+          <button class="item-btn char-btn" data-id="warlock_hero" style="--item-color:#331144">
+            <span class="char-icon">🧿</span>
+            <div class="char-info"><span class="char-name">Brujo</span><span class="char-hint">Pacto · 30 HP</span></div>
+          </button>
+          <button class="item-btn char-btn" data-id="sorcerer" style="--item-color:#1155aa">
+            <span class="char-icon">⚡</span>
+            <div class="char-info"><span class="char-name">Hechicero</span><span class="char-hint">Magia Nata · 24 HP</span></div>
+          </button>
+          <button class="item-btn char-btn" data-id="artificer" style="--item-color:#aa6611">
+            <span class="char-icon">⚙️</span>
+            <div class="char-info"><span class="char-name">Artífice</span><span class="char-hint">Invención · 30 HP</span></div>
           </button>
         </div>
       </div>
@@ -159,10 +205,10 @@
       <div class="panel-header">💀 Enemigos</div>
       <div class="count-header">
         <span class="count-label">En el mapa:</span>
-        <span class="count-badge" id="enemy-count">0/6</span>
+        <span class="count-badge" id="enemy-count">0/30</span>
       </div>
       <div class="panel-scroll">
-        <p class="panel-hint">Máx. <strong>6 fichas</strong>. Clic para colocar · arrastra para mover · clic derecho para eliminar.</p>
+        <p class="panel-hint">Máx. <strong>30 fichas</strong>. Clic para colocar · arrastra para mover · clic derecho para eliminar.</p>
         <div class="item-grid item-grid--chars">
           <!-- Original 6 -->
           <button class="item-btn char-btn" data-id="goblin"   style="--item-color:#226622"><span class="char-icon">👺</span><div class="char-info"><span class="char-name">Goblin</span><span class="char-hint">Ágil · 15 HP</span></div></button>
@@ -181,6 +227,72 @@
           <button class="item-btn char-btn" data-id="griffon"  style="--item-color:#664422"><span class="char-icon">🦅</span><div class="char-info"><span class="char-name">Grifo</span><span class="char-hint">Vuelo · 38 HP</span></div></button>
           <button class="item-btn char-btn" data-id="lich"     style="--item-color:#111133"><span class="char-icon">💀</span><div class="char-info"><span class="char-name">Lich</span><span class="char-hint">No-muerto arcano · 65 HP</span></div></button>
         </div>
+      </div>
+    </div>
+
+    <!-- ── Panel: Fog ────────────────────────────────────── -->
+    <div class="tab-panel" id="panel-fog">
+      <div class="panel-header">🌫️ Niebla de Guerra</div>
+      <div class="panel-scroll">
+        <p class="panel-hint">Cubre el mapa de total oscuridad. Los jugadores no sabrán qué se esconde.</p>
+        
+        <div style="display:flex; gap:8px; margin-top:8px;">
+          <button id="btn-fill-fog" class="slot-btn" style="flex:1; background:rgba(20,20,25,0.7); border-color:#555;">⬛ Cubrir Todo</button>
+          <button id="btn-clear-fog" class="slot-btn" style="flex:1">👁️ Despejar</button>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-bottom: 12px; margin-top: 12px;">
+          <button class="slot-btn brush-size-btn active" data-size="1" style="flex:1">🖌️ Pincel 1x1</button>
+          <button class="slot-btn brush-size-btn" data-size="3" style="flex:1">🖌️ Pincel 3x3</button>
+        </div>
+        
+        <div class="item-grid item-grid--chars">
+          <button class="item-btn char-btn fog-btn active" data-id="fog-paint" style="--item-color:#2a2a2a; width: 100%; grid-column: 1 / -1;">
+            <span class="char-icon">🖌️</span>
+            <div class="char-info"><span class="char-name">Pintar Niebla</span><span class="char-hint">Oculta parte del mapa</span></div>
+          </button>
+        </div>
+
+        <button class="erase-btn" data-layer="fog" style="width:100%; text-align:left; padding: 12px; margin-top:8px; border-radius: 8px;">
+          <span style="font-size:18px; margin-right:8px;">🧹</span> Borrar Niebla
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Panel: Dibujo & AoE ────────────────────────────── -->
+    <div class="tab-panel" id="panel-draw">
+      <div class="panel-header">🖌️ Dibujo y Áreas de Efecto</div>
+      <div class="panel-scroll">
+        <p class="panel-hint">Añade marcas y plantillas mágicas al campo de batalla. Para borrarlas usa la Goma o haz <strong>clic derecho</strong> sobre ellas.</p>
+        
+        <button class="erase-btn" data-layer="draw" style="width:100%; text-align:left; padding: 12px; margin-bottom:12px; border-radius: 8px;">
+          <span style="font-size:18px; margin-right:8px;">🧹</span> Goma de Borrar
+        </button>
+
+        <div class="rpanel-section-title" style="margin-top:0">Marcador Libre</div>
+        <div class="item-grid" style="margin-bottom: 16px;">
+          <button class="item-btn" data-id="path_#cc2222" style="--item-color:#cc2222"><span class="item-icon">🖍️</span><span class="item-label">Rojo</span></button>
+          <button class="item-btn" data-id="path_#2255cc" style="--item-color:#2255cc"><span class="item-icon">🖍️</span><span class="item-label">Azul</span></button>
+          <button class="item-btn" data-id="path_#222222" style="--item-color:#222222"><span class="item-icon">🖍️</span><span class="item-label">Negro</span></button>
+          <button class="item-btn" data-id="path_#ddaa00" style="--item-color:#ddaa00"><span class="item-icon">🖍️</span><span class="item-label">Amarillo</span></button>
+        </div>
+
+        <div class="rpanel-section-title">Círculo / Explosiones</div>
+        <div class="item-grid" style="margin-bottom: 16px;">
+          <button class="item-btn" data-id="circle_#ff4400" style="--item-color:#ff4400"><span class="item-icon">🔥</span><span class="item-label">Fuego</span></button>
+          <button class="item-btn" data-id="circle_#44aaff" style="--item-color:#44aaff"><span class="item-icon">❄️</span><span class="item-label">Hielo</span></button>
+          <button class="item-btn" data-id="circle_#44cc44" style="--item-color:#44cc44"><span class="item-icon">🧪</span><span class="item-label">Ácido</span></button>
+          <button class="item-btn" data-id="circle_#9922cc" style="--item-color:#9922cc"><span class="item-icon">🔮</span><span class="item-label">Arcano</span></button>
+        </div>
+
+        <div class="rpanel-section-title">Cono de Aliento</div>
+        <div class="item-grid">
+          <button class="item-btn" data-id="cone_#ff4400" style="--item-color:#ff4400"><span class="item-icon">🔥</span><span class="item-label">Fuego</span></button>
+          <button class="item-btn" data-id="cone_#44aaff" style="--item-color:#44aaff"><span class="item-icon">❄️</span><span class="item-label">Hielo</span></button>
+          <button class="item-btn" data-id="cone_#44cc44" style="--item-color:#44cc44"><span class="item-icon">🧪</span><span class="item-label">Ácido</span></button>
+          <button class="item-btn" data-id="cone_#ffffff" style="--item-color:#aaaaaa"><span class="item-icon">🌬️</span><span class="item-label">Viento</span></button>
+        </div>
+
       </div>
     </div>
 
@@ -211,6 +323,18 @@
           <span class="layer-name">Enemigos</span>
           <button class="layer-eye-btn"  data-layer="enemies"    title="Mostrar/ocultar">👁️</button>
           <button class="layer-lock-btn" data-layer="enemies"    title="Fijar/desfijar">🔓</button>
+        </div>
+        <div class="layer-row">
+          <span class="layer-icon">🌫️</span>
+          <span class="layer-name">Capa Niebla</span>
+          <button class="layer-eye-btn"  data-layer="fog"    title="Mostrar/ocultar">👁️</button>
+          <button class="layer-lock-btn" data-layer="fog"    title="Fijar/desfijar">🔓</button>
+        </div>
+        <div class="layer-row">
+          <span class="layer-icon">🖌️</span>
+          <span class="layer-name">Dibujos & AoE</span>
+          <button class="layer-eye-btn"  data-layer="draw"    title="Mostrar/ocultar">👁️</button>
+          <button class="layer-lock-btn" data-layer="draw"    title="Fijar/desfijar">🔓</button>
         </div>
       </div>
     </div>
@@ -265,10 +389,17 @@
 
     <!-- ── Map Slots Content ─────────────────────────────── -->
     <div class="rpanel-content" id="rpanel-maps">
-      <div class="rpanel-section-title">💾 Slots de guardado</div>
-      <p style="font-size:11px;color:var(--text-secondary);padding:0 12px 10px;line-height:1.5;">
-        El estado del mapa se guarda automáticamente. Usa estos slots para tener múltiples escenarios.
-      </p>
+      <div class="rpanel-section-title">Archivos Locales</div>
+      <p style="font-size:11px;color:var(--text-secondary);padding:0 12px 6px;line-height:1.5;">Transporta mapas descargando o subiendo los archivos JSON directamente desde o hacia tu computadora.</p>
+      
+      <div style="display:flex; gap:8px; padding: 0 12px 12px; flex-shrink: 0; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 6px;">
+        <button id="btn-export-json" class="slot-btn" style="flex:1">⬇️ Descargar</button>
+        <button id="btn-import-json" class="slot-btn" style="flex:1">⬆️ Subir</button>
+        <input type="file" id="input-import-json" accept=".json" style="display:none;">
+      </div>
+
+      <div class="rpanel-section-title">💾 Slots de guardado rápidos</div>
+      <p style="font-size:11px;color:var(--text-secondary);padding:0 12px 10px;line-height:1.5;">El estado se guarda en la caché del navegador. Útil para trabajar rápido el mismo día.</p>
       <div id="map-slots-list" class="map-slots-list"></div>
     </div>
 

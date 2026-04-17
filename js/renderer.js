@@ -10,11 +10,20 @@ function loadImg(src) {
   img.src = src;
   return img;
 }
-const SHEETS = {
-  chars:      loadImg('assets/characters_sheet.png'),   // 3 cols × 2 rows
-  enemiesNew: loadImg('assets/enemies_new.png'),         // 4 cols × 2 rows
-  envNew:     loadImg('assets/env_objects_new.png'),     // 4 cols × 3 rows
-};
+const CHAR_IMAGES = {};
+CHARACTER_CLASSES.forEach(obj => {
+  if (obj.hasImage) CHAR_IMAGES[obj.id] = loadImg(`assets/chars/${obj.id}.png`);
+});
+
+const ENEMY_IMAGES = {};
+ENEMY_TYPES.forEach(obj => {
+  if (obj.hasImage) ENEMY_IMAGES[obj.id] = loadImg(`assets/enemies/${obj.id}.png`);
+});
+
+const ENV_IMAGES = {};
+ENV_OBJECTS.forEach(obj => {
+  if (obj.hasImage) ENV_IMAGES[obj.id] = loadImg(`assets/env/${obj.id}.png`);
+});
 
 // ── Tile colours ──────────────────────────────────────────
 const TC = {
@@ -30,6 +39,10 @@ const TC = {
   ice:     { bg: '#99eebb', fg: '#cceeff', accent: '#ffffff' },
   dirt:    { bg: '#776655', fg: '#554433', accent: '#998877' },
   stone:   { bg: '#889999', fg: '#667777', accent: '#aabbbb' },
+  toxic:   { bg: '#332211', fg: '#44aa22', accent: '#aaff66' },
+  void:    { bg: '#050508', fg: 'rgba(50, 20, 90, 0.4)', accent: '#e2e2ff' },
+  cobble:  { bg: '#4a4a55', fg: '#33333b', accent: '#777788' },
+  magic:   { bg: '#1c0a2e', fg: '#441188', accent: '#a855f7' },
 };
 
 // ── Tile drawing ──────────────────────────────────────────
@@ -117,6 +130,66 @@ function drawTile(ctx, col, row, id) {
       ctx.fillStyle=tc.accent; ctx.fillRect(x+4,y+4,bw-8,bh-8); ctx.fillRect(x+bw+4,y+bh+4,bw-8,bh-8);
       break;
     }
+    case 'toxic': {
+      ctx.fillStyle=tc.fg;
+      for(let i=0;i<4;i++){ctx.beginPath(); ctx.ellipse(x+(col*11+i*17+5)%(sz/2)+sz*.25,y+(row*13+i*11+5)%(sz/2)+sz*.25,12,8,0.5,0,Math.PI*2); ctx.fill();}
+      ctx.fillStyle=tc.accent;
+      for(let i=0;i<3;i++){ctx.beginPath(); ctx.arc(x+(col*5+i*23+2)%(sz-8)+4, y+(row*7+i*19+1)%(sz-8)+4, 2, 0, Math.PI*2); ctx.fill();}
+      break;
+    }
+    case 'void': {
+      // Nebula clouds
+      ctx.fillStyle = tc.fg;
+      for (let i = 0; i < 3; i++) {
+        const bx = x + (col * 13 + i * 27) % sz;
+        const by = y + (row * 19 + i * 11) % sz;
+        ctx.beginPath();
+        ctx.ellipse(bx, by, 15 + (i * 5), 10 + i * 3, i * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      // Little stars
+      ctx.fillStyle = tc.accent;
+      for (let i = 0; i < 5; i++) {
+        const sx = x + (col * 29 + i * 17) % (sz - 4) + 2;
+        const sy = y + (row * 31 + i * 43) % (sz - 4) + 2;
+        const radius = i % 2 === 0 ? 1.2 : 0.6;
+        ctx.beginPath(); ctx.arc(sx, sy, radius, 0, Math.PI * 2); ctx.fill();
+      }
+      break;
+    }
+    case 'cobble': {
+      ctx.strokeStyle=tc.fg; ctx.lineWidth=2;
+      ctx.strokeRect(x+2,y+2,sz/2-4,sz/2-4); ctx.strokeRect(x+sz/2+2,y+2,sz/2-4,sz/2-4);
+      ctx.strokeRect(x+2,y+sz/2+2,sz/2-4,sz/2-4); ctx.strokeRect(x+sz/2+2,y+sz/2+2,sz/2-4,sz/2-4);
+      ctx.fillStyle=tc.accent;
+      ctx.fillRect(x+sz/4-2, y+sz/4-2, 4, 4); ctx.fillRect(x+sz*0.75-2, y+sz*0.75-2, 4, 4);
+      break;
+    }
+    case 'magic': {
+      ctx.strokeStyle = tc.accent; ctx.lineWidth = 1.5;
+      
+      // Large rune circle overlay
+      ctx.beginPath(); ctx.arc(x+sz/2, y+sz/2, sz*0.4, 0, Math.PI*2); ctx.stroke();
+      
+      // Runes/Angular lines around the edge
+      ctx.beginPath();
+      ctx.moveTo(x, y); ctx.lineTo(x+10, y+10);
+      ctx.moveTo(x+sz, y); ctx.lineTo(x+sz-10, y+10);
+      ctx.moveTo(x, y+sz); ctx.lineTo(x+10, y+sz-10);
+      ctx.moveTo(x+sz, y+sz); ctx.lineTo(x+sz-10, y+sz-10);
+      ctx.stroke();
+
+      // Glowing dense inner core
+      ctx.fillStyle = tc.fg;
+      ctx.save();
+      ctx.translate(x+sz/2, y+sz/2);
+      ctx.rotate(Math.PI/4);
+      ctx.fillRect(-6, -6, 12, 12);
+      ctx.fillStyle = tc.accent;
+      ctx.fillRect(-2, -2, 4, 4);
+      ctx.restore();
+      break;
+    }
   }
   ctx.strokeStyle='rgba(0,0,0,0.12)'; ctx.lineWidth=0.5; ctx.strokeRect(x,y,sz,sz);
   ctx.restore();
@@ -144,38 +217,26 @@ function drawEmojiToken(ctx, x, y, icon, bgColor, borderColor, label, size = 48)
   ctx.restore();
 }
 
-// ── Sprite sheet token (with emoji fallback) ───────────────
-function drawSheetToken(ctx, x, y, img, sheetPos, cols, rows, bgColor, borderColor, icon, label, size = 48) {
-  const sheetReady = img && img.complete && img.naturalWidth > 0;
 
-  if (!sheetReady) {
-    // Fallback to emoji while image loads
+// ── Individual Image Token ─────────────────────────────────
+function drawIndividualToken(ctx, x, y, img, bgColor, borderColor, icon, label, size = 48) {
+  const imgReady = img && img.complete && img.naturalWidth > 0;
+  if (!imgReady) {
     drawEmojiToken(ctx, x, y, icon, bgColor, borderColor, label, size);
     return;
   }
-
   const cx = x + size/2, cy = y + size/2, r = size/2 - 2;
-  const srcW = img.naturalWidth  / cols;
-  const srcH = img.naturalHeight / rows;
-  const srcX = sheetPos.col * srcW;
-  const srcY = sheetPos.row * srcH;
-
   ctx.save();
-  // Shadow + border ring
   ctx.shadowColor='rgba(0,0,0,0.7)'; ctx.shadowBlur=10; ctx.shadowOffsetY=3;
   ctx.beginPath(); ctx.arc(cx,cy,r+2.5,0,Math.PI*2); ctx.fillStyle=borderColor; ctx.fill();
   ctx.shadowBlur=0; ctx.shadowOffsetY=0;
-
-  // Background circle
   ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle=bgColor; ctx.fill();
-
-  // Clip and draw sprite
+  
   ctx.save();
-  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.clip();
-  ctx.drawImage(img, srcX, srcY, srcW, srcH, cx-r, cy-r, r*2, r*2);
+  ctx.beginPath(); ctx.arc(cx, cy, r - 1, 0, Math.PI*2); ctx.clip();
+  ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, x, y, size, size);
   ctx.restore();
 
-  // Label outside clip
   if (label) {
     ctx.font='bold 8px "Inter",sans-serif'; ctx.fillStyle='#fff';
     ctx.textAlign='center'; ctx.textBaseline='top';
@@ -202,9 +263,13 @@ export class MapRenderer {
     this.canvas    = canvas;
     this.ctx       = canvas.getContext('2d');
     this.showGrid  = true;
+    this.exportMode = false;
     this.hoverCell = null;
-    this._resize();
-    new ResizeObserver(() => { this._resize(); this.render(); }).observe(canvas.parentElement);
+    
+    if (this.canvas.parentElement) {
+      this._resize();
+      new ResizeObserver(() => { this._resize(); this.render(); }).observe(this.canvas.parentElement);
+    }
   }
 
   _resize() {
@@ -234,10 +299,25 @@ export class MapRenderer {
     ctx.fillStyle = '#1a1a2e';
     ctx.fillRect(0, 0, mapW, mapH);
 
+    // Viewport Frustum Culling limits
+    const viewLeft   = -panX / zoom;
+    const viewTop    = -panY / zoom;
+    const viewRight  = viewLeft + canvas.width / zoom;
+    const viewBottom = viewTop + canvas.height / zoom;
+
     // Floor
     if (st.layers.floor.visible) {
       for (const [key, tid] of Object.entries(st.floorGrid)) {
         const [col, row] = key.split(',').map(Number);
+        const x = col * TILE_SIZE;
+        const y = row * TILE_SIZE;
+        
+        // Skip rendering if tile is entirely outside viewport
+        if (x + TILE_SIZE < viewLeft || x > viewRight || 
+            y + TILE_SIZE < viewTop || y > viewBottom) {
+          continue;
+        }
+        
         drawTile(ctx, col, row, tid);
       }
     }
@@ -255,24 +335,64 @@ export class MapRenderer {
       for (const obj of st.envObjects) {
         const def = ENV_OBJECTS.find(e => e.id === obj.type);
         if (!def) continue;
-        if (def.sheet) {
-          // New object with sprite sheet (4 cols × 3 rows)
-          drawSheetToken(ctx, obj.x, obj.y, SHEETS.envNew, def.sheet, 4, 3, def.color + 'cc', def.color, def.icon, null, 44);
+        if (def.hasImage) {
+          drawIndividualToken(ctx, obj.x, obj.y, ENV_IMAGES[def.id], def.color + 'cc', def.color, def.icon, null, 44);
         } else {
           drawEmojiToken(ctx, obj.x, obj.y, def.icon, def.color + 'cc', def.color, null, 44);
         }
       }
     }
 
-    // ── Characters — always use sprite sheet ───────────────
+    // ── Drawings & AoE ─────────────────────────────────────
+    if (st.layers.draw && st.layers.draw.visible && st.drawings) {
+      for (const d of st.drawings) {
+        ctx.save();
+        if (d.shape === 'path') {
+          ctx.strokeStyle = d.color;
+          ctx.lineWidth = 4;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.beginPath();
+          if (d.points.length > 0) {
+            ctx.moveTo(d.points[0].x, d.points[0].y);
+            for (let i = 1; i < d.points.length; i++) ctx.lineTo(d.points[i].x, d.points[i].y);
+          }
+          ctx.stroke();
+        } else if (d.shape === 'circle') {
+          ctx.fillStyle = d.color + '66'; // ~40% opacity
+          ctx.strokeStyle = d.color;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(d.x, d.y, d.radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        } else if (d.shape === 'cone') {
+          ctx.fillStyle = d.color + '66';
+          ctx.strokeStyle = d.color;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(d.x, d.y);
+          // Cone uses ~53 degree arc
+          ctx.arc(d.x, d.y, d.radius, d.angle - 0.46, d.angle + 0.46);
+          ctx.lineTo(d.x, d.y);
+          ctx.fill();
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+    }
+
+    // ── Characters ─────────────────────────────────────────
     if (st.layers.characters.visible) {
       for (const ch of st.characters) {
         const def = CHARACTER_CLASSES.find(c => c.id === ch.type);
         if (!def) continue;
         if (activeUid === ch.uid) drawTurnRing(ctx, ch.x, ch.y, 56, def.border);
-        drawSheetToken(ctx, ch.x, ch.y, SHEETS.chars,
-          { row: def.sheetRow, col: def.sheetCol }, 3, 2,
-          def.color, def.border, def.icon, ch.label, 56);
+        if (def.hasImage) {
+          drawIndividualToken(ctx, ch.x, ch.y, CHAR_IMAGES[def.id], def.color, def.border, def.icon, ch.label, 56);
+        } else {
+          drawEmojiToken(ctx, ch.x, ch.y, def.icon, def.color, def.border, ch.label, 56);
+        }
       }
     }
 
@@ -282,21 +402,50 @@ export class MapRenderer {
         const def = ENEMY_TYPES.find(e => e.id === en.type);
         if (!def) continue;
         if (activeUid === en.uid) drawTurnRing(ctx, en.x, en.y, 52, def.border);
-        if (def.sheet) {
-          // New enemy from sprite sheet (4 cols × 2 rows)
-          drawSheetToken(ctx, en.x, en.y, SHEETS.enemiesNew, def.sheet, 4, 2, def.color, def.border, def.icon, en.label, 52);
+        if (def.hasImage) {
+          drawIndividualToken(ctx, en.x, en.y, ENEMY_IMAGES[def.id], def.color, def.border, def.icon, en.label, 52);
         } else {
           drawEmojiToken(ctx, en.x, en.y, def.icon, def.color, def.border, en.label, 52);
         }
       }
     }
 
-    // Hover highlight
-    if (this.hoverCell && st.activeTool === 'floor') {
+    // ── Fog of War ─────────────────────────────────────────
+    if (st.layers.fog && st.layers.fog.visible) {
+      ctx.fillStyle = 'rgba(0,0,0,1)';
+      for (let c = 0; c < GRID_COLS; c++) {
+        const x = c * TILE_SIZE;
+        if (x + TILE_SIZE < viewLeft || x > viewRight) continue;
+        
+        for (let r = 0; r < GRID_ROWS; r++) {
+          const y = r * TILE_SIZE;
+          if (y + TILE_SIZE < viewTop || y > viewBottom) continue;
+          
+          if (st.fogGrid[`${c},${r}`]) {
+            ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+          }
+        }
+      }
+    }
+
+    // ── Hover Highlight ──────────────────────────────────────
+    const toolsWithHover = ['floor', 'fog'];
+    if (this.hoverCell && toolsWithHover.includes(st.activeTool)) {
       const { col, row } = this.hoverCell;
+      const bs = st.brushSize || 1;
+      const offset = Math.floor(bs/2);
+
       ctx.save();
-      ctx.fillStyle='rgba(255,255,255,0.14)'; ctx.fillRect(col*TILE_SIZE,row*TILE_SIZE,TILE_SIZE,TILE_SIZE);
-      ctx.strokeStyle='rgba(255,255,255,0.55)'; ctx.lineWidth=1.5/zoom; ctx.strokeRect(col*TILE_SIZE,row*TILE_SIZE,TILE_SIZE,TILE_SIZE);
+      ctx.fillStyle = 'rgba(255,255,255,0.14)'; 
+      ctx.fillRect((col-offset)*TILE_SIZE, (row-offset)*TILE_SIZE, bs*TILE_SIZE, bs*TILE_SIZE);
+      
+      let borderColor = st.isErasing ? 'rgba(255,50,50,0.8)' : 'rgba(255,255,255,0.6)';
+      if (st.activeTool === 'fog') {
+        borderColor = st.isErasing ? 'rgba(255,255,255,0.8)' : 'rgba(30,30,30,0.8)';
+      }
+      ctx.strokeStyle = borderColor; 
+      ctx.lineWidth = 1.5/zoom; 
+      ctx.strokeRect((col-offset)*TILE_SIZE, (row-offset)*TILE_SIZE, bs*TILE_SIZE, bs*TILE_SIZE);
       ctx.restore();
     }
 
