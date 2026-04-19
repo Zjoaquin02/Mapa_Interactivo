@@ -6,12 +6,13 @@
   <title>D&D MapForge — Constructor de Escenarios</title>
   <meta name="description" content="Constructor de mapas interactivo con zoom, iniciativa y slots de guardado para campañas de D&D."/>
   <link rel="stylesheet" href="styles.css"/>
+  <link rel="icon" type="image/png" href="assets/Fogata.png"/>
 </head>
 <body>
 
 <!-- ── Toolbar ─────────────────────────────────────────────── -->
 <header class="toolbar">
-  <div class="toolbar-brand">⚔️ D&amp;D <span>MapForge</span></div>
+  <div class="toolbar-brand"><img src="assets/Fogata.png" alt="Fogata" class="brand-icon"> D&amp;D <span>MapForge</span></div>
 
   <!-- Zoom Controls -->
   <div class="zoom-controls">
@@ -345,6 +346,10 @@
   <!--  CANVAS AREA                                            -->
   <!-- ═══════════════════════════════════════════════════════ -->
   <main class="canvas-area" id="canvas-area">
+    
+    <button id="btn-toggle-left" class="sidebar-toggle left" title="Contraer/Expandir panel izquierdo">◀</button>
+    <button id="btn-toggle-right" class="sidebar-toggle right" title="Contraer/Expandir panel derecho">▶</button>
+
     <div class="canvas-wrapper" id="canvas-wrapper">
       <canvas id="map-canvas"></canvas>
     </div>

@@ -19,19 +19,42 @@ render();
 
 // ── Right Panel Toggle ────────────────────────────────────
 const rightPanel  = document.getElementById('right-panel');
+const leftSidebar = document.querySelector('.sidebar');
 let rightPanelOpen = false;
+let leftSidebarOpen  = true;
+
+const btnToggleLeft  = document.getElementById('btn-toggle-left');
+const btnToggleRight = document.getElementById('btn-toggle-right');
 
 function openRightPanel(tabId) {
   rightPanel.classList.add('open');
   rightPanelOpen = true;
+  updateToggleButtons();
   document.querySelectorAll('.rpanel-tab').forEach(t => t.classList.toggle('active', t.dataset.panel === tabId));
   document.querySelectorAll('.rpanel-content').forEach(p => p.classList.toggle('active', p.id === `rpanel-${tabId}`));
   if (tabId === 'maps') renderMapSlots();
 }
 
+function closeRightPanel() {
+  rightPanel.classList.remove('open');
+  rightPanelOpen = false;
+  updateToggleButtons();
+}
+
+function updateToggleButtons() {
+  if (btnToggleLeft) {
+    btnToggleLeft.textContent = leftSidebarOpen ? '◀' : '▶';
+    btnToggleLeft.title = leftSidebarOpen ? 'Contraer panel izquierdo' : 'Expandir panel izquierdo';
+  }
+  if (btnToggleRight) {
+    btnToggleRight.textContent = rightPanelOpen ? '▶' : '◀';
+    btnToggleRight.title = rightPanelOpen ? 'Contraer panel derecho' : 'Expandir panel derecho';
+  }
+}
+
 document.getElementById('btn-open-initiative')?.addEventListener('click', () => {
   if (rightPanelOpen && rightPanel.querySelector('.rpanel-tab[data-panel="initiative"]')?.classList.contains('active')) {
-    rightPanel.classList.remove('open'); rightPanelOpen = false;
+    closeRightPanel();
   } else {
     openRightPanel('initiative');
   }
@@ -39,15 +62,31 @@ document.getElementById('btn-open-initiative')?.addEventListener('click', () => 
 
 document.getElementById('btn-open-maps')?.addEventListener('click', () => {
   if (rightPanelOpen && rightPanel.querySelector('.rpanel-tab[data-panel="maps"]')?.classList.contains('active')) {
-    rightPanel.classList.remove('open'); rightPanelOpen = false;
+    closeRightPanel();
   } else {
     openRightPanel('maps');
   }
 });
 
 document.getElementById('btn-close-rpanel')?.addEventListener('click', () => {
-  rightPanel.classList.remove('open'); rightPanelOpen = false;
+  closeRightPanel();
 });
+
+// ── Sidebar Toggles Logic ─────────────────────────────────
+btnToggleLeft?.addEventListener('click', () => {
+  leftSidebarOpen = !leftSidebarOpen;
+  leftSidebar.classList.toggle('collapsed', !leftSidebarOpen);
+  updateToggleButtons();
+  // Resizing canvas after transition
+  setTimeout(() => render(), 300);
+});
+
+btnToggleRight?.addEventListener('click', () => {
+  if (rightPanelOpen) closeRightPanel();
+  else openRightPanel('initiative');
+});
+
+updateToggleButtons();
 
 document.querySelectorAll('.rpanel-tab').forEach(btn => {
   btn.addEventListener('click', () => openRightPanel(btn.dataset.panel));
