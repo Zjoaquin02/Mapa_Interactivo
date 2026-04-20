@@ -13,10 +13,118 @@ import { showToast } from './ui_utils.js';
 
 // ── Canvas Setup ──────────────────────────────────────────
 const canvas   = document.getElementById('map-canvas');
+window.DND_APP_LOADED = true;
+
+// ── Global Error Handler for Debugging ───────────────────
+window.addEventListener('error', (event) => {
+  console.error('Fatal crash:', event.error);
+  const msg = event.error ? event.error.message : 'Error desconocido';
+  const debugDiv = document.createElement('div');
+  debugDiv.style = 'position:fixed; top:10px; right:10px; background:rgba(220,0,0,0.9); color:white; padding:15px; border:2px solid gold; z-index:9999; font-weight:bold; border-radius:8px;';
+  debugDiv.innerHTML = `⚠️ ERROR FATAL:<br>${msg}<br><small>Revisa la consola (F12) para más detalles.</small>`;
+  document.body.appendChild(debugDiv);
+});
+
+// ── Lobby Logic (Moved to top for priority) ──────────────
+const lobbyOverlay = document.getElementById('lobby-overlay');
+const lobbyStep1   = document.getElementById('lobby-step-1');
+const lobbyStepSel = document.getElementById('lobby-step-select');
+const lobbyStatus  = document.getElementById('lobby-status');
+
+function updateLobbyStatus(msg, isError = false) {
+  if (!lobbyStatus) return;
+  lobbyStatus.textContent = msg;
+  lobbyStatus.style.color = isError ? 'var(--danger)' : 'var(--accent-light)';
+}
+
+function bindLobby() {
+  console.log('Binding lobby events...');
+  
+  document.getElementById('btn-create-room')?.addEventListener('click', async () => {
+    console.log('Click en Crear Sala');
+    const nickEl = document.getElementById('input-nickname');
+    const nick = nickEl ? nickEl.value.trim() : '';
+    
+    if (!nick) { updateLobbyStatus('Ingresa un nombre primero.', true); return; }
+    
+    updateLobbyStatus('Creando sala...');
+    try {
+      if (!network) throw new Error('Network module not loaded');
+      const id = await network.initHost(nick);
+      if (lobbyOverlay) lobbyOverlay.style.display = 'none';
+      showToast(`Sala creada: ${id}. ¡Comparte el código!`, 'success');
+      updateLobbyStatus('');
+    } catch (err) {
+      console.error('Error in initHost:', err);
+      updateLobbyStatus('Error: ' + err, true);
+    }
+  });
+
+  document.getElementById('btn-join-room')?.addEventListener('click', async () => {
+    console.log('Click en Unirse a Sala');
+    const nick = document.getElementById('input-nickname')?.value.trim();
+    const room = document.getElementById('input-room-code')?.value.trim().toUpperCase();
+    
+    if (!nick || !room) { updateLobbyStatus('Ingresa nombre y código.', true); return; }
+    
+    updateLobbyStatus('Conectando...');
+    try {
+      await network.initClient(room, nick);
+      updateLobbyStatus('');
+      showLobbyCharacterSelection();
+    } catch (err) {
+      updateLobbyStatus('No se pudo encontrar la sala.', true);
+    }
+  });
+}
+
+function showLobbyCharacterSelection() {
+  if (lobbyStep1) lobbyStep1.classList.remove('active');
+  if (lobbyStepSel) lobbyStepSel.classList.add('active');
+  const grid = document.getElementById('char-selection-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  
+  CHARACTER_CLASSES.forEach(cls => {
+    const btn = document.createElement('button');
+    btn.className = 'item-btn char-btn';
+    btn.dataset.id = cls.id;
+    btn.innerHTML = `
+      <span class="char-icon">${cls.icon}</span>
+      <div class="char-info">
+        <span class="char-name">${cls.label}</span>
+        <span class="char-hint">${cls.defaultHp} HP</span>
+      </div>
+    `;
+    btn.addEventListener('click', () => {
+      grid.querySelectorAll('.item-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const confirmBtn = document.getElementById('btn-confirm-selection');
+      if (confirmBtn) confirmBtn.disabled = false;
+      state.getAll().session.selectedClassId = cls.id;
+    });
+    grid.appendChild(btn);
+  });
+}
+
+document.getElementById('btn-confirm-selection')?.addEventListener('click', () => {
+  const sess = state.getAll().session;
+  const classId = sess.selectedClassId;
+  const nickname = sess.nickname;
+  
+  document.body.classList.add('is-hero');
+  if (lobbyOverlay) lobbyOverlay.style.display = 'none';
+  
+  state.setActiveTool('characters');
+  state.setActiveItem(classId);
+  showToast(`¡Bienvenido ${nickname}! Clica en el mapa para posicionarte.`, 'success');
+});
+
+bindLobby();
+
+// ── Rendering Initialization ─────────────────────────────
 const renderer = new MapRenderer(canvas);
-
 function render() { renderer.render(); }
-
 bindInteractions(canvas, renderer, render);
 render();
 
@@ -286,83 +394,32 @@ state.subscribe((key, st) => {
   render();
 });
 
-// ── Lobby Logic ──────────────────────────────────────────
-const lobbyOverlay = document.getElementById('lobby-overlay');
-const lobbyStep1   = document.getElementById('lobby-step-1');
-const lobbyStepSel = document.getElementById('lobby-step-select');
-const lobbyStatus  = document.getElementById('lobby-status');
+// (Lobby logic moved to top)
 
-function updateLobbyStatus(msg, isError = false) {
-  lobbyStatus.textContent = msg;
-  lobbyStatus.style.color = isError ? 'var(--danger)' : 'var(--accent-light)';
-}
+// ── App Initialization ─────────────────────────────────────
+try {
+  console.log('D&D MapForge — Initializing...');
+  updateLayerUI();
+  updateZoomDisplay();
+  bindInitiativeControls();
+  bindMapSlotControls();
 
-document.getElementById('btn-create-room')?.addEventListener('click', async () => {
-  const nick = document.getElementById('input-nickname').value.trim();
-  if (!nick) { updateLobbyStatus('Ingresa un nombre primero.', true); return; }
-  
-  updateLobbyStatus('Creando sala...');
-  try {
-    const id = await network.initHost(nick);
-    lobbyOverlay.style.display = 'none';
-    showToast(`Sala creada: ${id}. ¡Comparte el código!`, 'success');
-    updateLobbyStatus('');
-  } catch (err) {
-    updateLobbyStatus('Error al crear sala. Intenta de nuevo.', true);
+  // Center the map on first load
+  const vpInit = state.getAll().viewport;
+  if (vpInit.zoom === 0.8 && vpInit.panX === 40) {
+    setTimeout(() => {
+      const rect = canvas.getBoundingClientRect();
+      state.resetViewport(rect.width, rect.height, GRID_COLS * TILE_SIZE, GRID_ROWS * TILE_SIZE);
+      render();
+    }, 100);
   }
-});
-
-document.getElementById('btn-join-room')?.addEventListener('click', async () => {
-  const nick = document.getElementById('input-nickname').value.trim();
-  const room = document.getElementById('input-room-code').value.trim().toUpperCase();
-  if (!nick || !room) { updateLobbyStatus('Ingresa nombre y código.', true); return; }
   
-  updateLobbyStatus('Conectando...');
-  try {
-    await network.initClient(room, nick);
-    updateLobbyStatus('');
-    showLobbyCharacterSelection();
-  } catch (err) {
-    updateLobbyStatus('No se pudo encontrar la sala.', true);
-  }
-});
-
-function showLobbyCharacterSelection() {
-  lobbyStep1.classList.remove('active');
-  lobbyStepSel.classList.add('active');
-  const grid = document.getElementById('char-selection-grid');
-  grid.innerHTML = '';
-  
-  CHARACTER_CLASSES.forEach(cls => {
-    const btn = document.createElement('button');
-    btn.className = 'item-btn char-btn';
-    btn.dataset.id = cls.id;
-    btn.innerHTML = `
-      <span class="char-icon">${cls.icon}</span>
-      <div class="char-info">
-        <span class="char-name">${cls.label}</span>
-        <span class="char-hint">${cls.defaultHp} HP</span>
-      </div>
-    `;
-    btn.addEventListener('click', () => {
-      grid.querySelectorAll('.item-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById('btn-confirm-selection').disabled = false;
-      state.getAll().session.selectedClassId = cls.id;
-    });
-    grid.appendChild(btn);
-  });
+  console.log('D&D MapForge — Ready.');
+} catch (err) {
+  console.error('Fatal initialization error:', err);
+  // Show error on screen for easier debugging if console is closed
+  const errDiv = document.createElement('div');
+  errDiv.style = 'position:fixed; bottom:0; left:0; background:red; color:white; padding:10px; z-index:9999; font-size:12px;';
+  errDiv.textContent = 'Error de inicio: ' + err.message;
+  document.body.appendChild(errDiv);
 }
-
-document.getElementById('btn-confirm-selection')?.addEventListener('click', () => {
-  const classId = state.getAll().session.selectedClassId;
-  const nickname = state.getAll().session.nickname;
-  
-  document.body.classList.add('is-hero');
-  lobbyOverlay.style.display = 'none';
-  
-  // Enter "Placement Mode"
-  state.setActiveTool('characters');
-  state.setActiveItem(classId);
-  showToast(`¡Bienvenido ${nickname}! Clica en el mapa para posicionarte.`, 'success');
-});
