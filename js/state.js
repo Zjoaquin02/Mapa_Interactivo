@@ -1,7 +1,7 @@
 // ============================================================
 //  D&D Interactive Map Builder — State Manager
 // ============================================================
-import { CHARACTER_CLASSES, ENEMY_TYPES } from './constants.js';
+import { CHARACTER_CLASSES, ENEMY_TYPES, ENEMY_VARIANTS } from './constants.js';
 
 const DEFAULT_STATE = () => ({
   activeTool: 'floor',
@@ -269,10 +269,23 @@ class StateManager {
   // ── Enemies ───────────────────────────────────────────────
   addEnemy(typeId, x, y, label) {
     if (this.isLayerLocked('enemies')) return false;
-    if (this._state.enemies.length >= 6) return 'max';
+    if (this._state.enemies.length >= 30) return 'max';
     const uid = ++this._state._uidCounter;
+    
+    // Resolve display name and metadata from static defaults or dynamic variants
+    let meta = ENEMY_TYPES.find(e => e.id === typeId);
+    if (!meta && ENEMY_VARIANTS[typeId]) meta = ENEMY_VARIANTS[typeId];
+    
+    const baseName = meta ? meta.label : typeId;
     const num = this._state.enemies.filter(e => e.type === typeId).length + 1;
-    this._state.enemies.push({ uid, type: typeId, x, y, label: label || `${typeId} ${num}` });
+    
+    this._state.enemies.push({ 
+      uid, 
+      type: typeId, 
+      x, 
+      y, 
+      label: label || `${baseName} ${num}` 
+    });
     this._notify('enemies'); this._save(); return uid;
   }
   moveEnemy(uid, x, y) {
@@ -368,7 +381,7 @@ class StateManager {
       if (def) this.addToInitiative({ uid: ch.uid, name: ch.label, icon: def.icon, color: def.color, border: def.border, type: 'hero', maxHp: def.defaultHp });
     }
     for (const en of st.enemies) {
-      const def = ENEMY_TYPES.find(e => e.id === en.type);
+      const def = ENEMY_TYPES.find(e => e.id === en.type) || ENEMY_VARIANTS[en.type];
       if (def) this.addToInitiative({ uid: en.uid, name: en.label, icon: def.icon, color: def.color, border: def.border, type: 'enemy', maxHp: def.defaultHp });
     }
   }

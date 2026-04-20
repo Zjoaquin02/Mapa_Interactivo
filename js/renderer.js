@@ -1,7 +1,7 @@
 // ============================================================
 //  D&D Interactive Map Builder — Renderer (Viewport + Sprites)
 // ============================================================
-import { TILE_SIZE, GRID_COLS, GRID_ROWS, ENV_OBJECTS, CHARACTER_CLASSES, ENEMY_TYPES } from './constants.js';
+import { TILE_SIZE, GRID_COLS, GRID_ROWS, ENV_OBJECTS, CHARACTER_CLASSES, ENEMY_TYPES, ENEMY_VARIANTS } from './constants.js';
 import { state } from './state.js';
 
 // ── Preload sprite sheets ─────────────────────────────────
@@ -399,7 +399,7 @@ export class MapRenderer {
     // ── Enemies ────────────────────────────────────────────
     if (st.layers.enemies.visible) {
       for (const en of st.enemies) {
-        const def = ENEMY_TYPES.find(e => e.id === en.type);
+        const def = ENEMY_TYPES.find(e => e.id === en.type) || ENEMY_VARIANTS[en.type];
         if (!def) continue;
         if (activeUid === en.uid) drawTurnRing(ctx, en.x, en.y, 52, def.border);
         if (def.hasImage) {

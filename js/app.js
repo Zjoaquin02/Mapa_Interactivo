@@ -8,8 +8,8 @@ import { bindInteractions } from './interactions.js';
 import { renderInitiativePanel, bindInitiativeControls } from './initiative.js';
 import { renderMapSlots, bindMapSlotControls } from './mapslots.js';
 import { network } from './network.js';
-import { CHARACTER_CLASSES } from './constants.js';
-import { showToast } from './ui_utils.js';
+import { CHARACTER_CLASSES, updateEnemyTypes, DEFAULT_ENEMIES, ENEMY_TYPES, updateEnemyVariants } from './constants.js';
+import { showToast, renderEnemyList } from './ui_utils.js';
 
 // ── Canvas Setup ──────────────────────────────────────────
 const canvas   = document.getElementById('map-canvas');
@@ -167,12 +167,30 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
-// ── Item Buttons ──────────────────────────────────────────
-document.querySelectorAll('.item-btn').forEach(btn => {
+// ── Item Buttons (Standard Bind) ──────────────────────────
+// Note: We only bind static buttons (Heroes, Environment, Floors). 
+// Enemies are handled dynamically.
+document.querySelectorAll('.item-btn:not(.char-btn)').forEach(btn => {
   btn.addEventListener('click', () => {
     const panel = btn.closest('.tab-panel')?.id?.replace('panel-', '');
     const wasActive = btn.classList.contains('active');
     document.querySelectorAll(`#panel-${panel} .item-btn`).forEach(b => b.classList.remove('active'));
+    if (!wasActive) {
+      btn.classList.add('active');
+      state.setActiveItem(btn.dataset.id);
+      state.setErasing(false);
+      document.querySelectorAll('.erase-btn').forEach(b => b.classList.remove('active'));
+    } else {
+      state.setActiveItem(null);
+    }
+  });
+});
+
+// Bind Heroes manually since they are still static in HTML
+document.querySelectorAll('#panel-characters .item-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const wasActive = btn.classList.contains('active');
+    document.querySelectorAll('#panel-characters .item-btn').forEach(b => b.classList.remove('active'));
     if (!wasActive) {
       btn.classList.add('active');
       state.setActiveItem(btn.dataset.id);
@@ -375,6 +393,118 @@ document.getElementById('btn-hero-reset')?.addEventListener('click', () => {
 
 // (Lobby logic moved to top)
 
+let expandedGroups = [];
+
+function selectEnemy(id) {
+  const wasActive = state.get('activeItem') === id;
+  state.setActiveItem(wasActive ? null : id);
+  state.setErasing(false);
+  document.querySelectorAll('.erase-btn').forEach(b => b.classList.remove('active'));
+  
+  // Re-render to show selection
+  const container = document.getElementById('enemy-list-grid');
+  if (container) renderEnemyList(container, ENEMY_TYPES, selectEnemy, toggleEnemyGroup, state.get('activeItem'), expandedGroups);
+}
+
+async function toggleEnemyGroup(groupId) {
+  const idx = expandedGroups.indexOf(groupId);
+  if (idx !== -1) {
+    expandedGroups.splice(idx, 1);
+  } else {
+    expandedGroups.push(groupId);
+    
+    // Fetch variants if not loaded
+    const group = ENEMY_TYPES.find(e => e.id === groupId);
+    if (group && !group.variants) {
+      try {
+        const resp = await fetch(`https://zjoaquin02.github.io/Bestiary-D-D/data/${groupId}.json`);
+        if (resp.ok) {
+          const detail = await resp.json();
+          if (detail.variantes) {
+            group.variants = detail.variantes.map(v => {
+              const vId = `${groupId}_${v.nombre.toLowerCase().replace(/ /g, '_')}`;
+              // Register variant in a global meta-map so state can use it for HP/Label
+              updateEnemyVariants(vId, {
+                label: v.nombre,
+                defaultHp: v.hp,
+                icon: group.icon === '📁' ? '💀' : group.icon,
+                color: group.color === '#7c3aed' ? '#555555' : group.color,
+                type: group.type,
+                parentGroup: groupId
+              });
+              
+              return {
+                id: vId,
+                label: v.nombre,
+                icon: group.icon === '📁' ? '💀' : group.icon,
+                color: group.color === '#7c3aed' ? '#555555' : group.color,
+                defaultHp: v.hp,
+                type: group.type,
+                parentGroup: groupId
+              };
+            });
+          }
+        }
+      } catch (err) {
+        console.error(`Error loading variants for ${groupId}:`, err);
+      }
+    }
+  }
+  
+  const container = document.getElementById('enemy-list-grid');
+  if (container) renderEnemyList(container, ENEMY_TYPES, selectEnemy, toggleEnemyGroup, state.get('activeItem'), expandedGroups);
+}
+
+async function initBestiarySync() {
+  const container = document.getElementById('enemy-list-grid');
+  if (!container) return;
+
+  // Initial render with defaults
+  renderEnemyList(container, ENEMY_TYPES, selectEnemy, toggleEnemyGroup, state.get('activeItem'), expandedGroups);
+
+  try {
+    const resp = await fetch('https://zjoaquin02.github.io/Bestiary-D-D/data/list.json');
+    if (!resp.ok) throw new Error('Failed to fetch bestiary');
+    const bestiary = await resp.json();
+    
+    // Assign icons/colors based on previous system or type
+    // Initial marking of groups:
+    // We assume anything with a typical 'plural' ID or known groups are candidates
+    const groupIds = ['esqueletos', 'zombies', 'elementales', 'golems', 'espectros', 'familiares_infernales', 'los_condenados', 'yugoloths', 'demonios_veteranos', 'diablos_veteranos', 'principes_abismo', 'senores_infierno'];
+
+    const mapped = bestiary.map(item => {
+      const isBoss = item.tipo === 'boss';
+      const isGroupCandidate = groupIds.includes(item.id);
+      
+      return {
+        id: item.id,
+        label: item.nombre,
+        icon: isBoss ? '🐉' : (isGroupCandidate ? '📁' : '💀'), 
+        color: isBoss ? '#cc2200' : (isGroupCandidate ? '#7c3aed' : '#555555'),
+        defaultHp: isBoss ? 80 : 18,
+        type: item.tipo,
+        isGroup: isGroupCandidate,
+        variants: null // Loaded on demand
+      };
+    });
+
+    mapped.sort((a, b) => {
+      // Sort by type: monster first, then boss
+      if (a.type === 'monster' && b.type === 'boss') return -1;
+      if (a.type === 'boss' && b.type === 'monster') return 1;
+      // Then alphabetical by label
+      return a.label.localeCompare(b.label);
+    });
+
+    updateEnemyTypes(mapped);
+    renderEnemyList(container, ENEMY_TYPES, selectEnemy, toggleEnemyGroup, state.get('activeItem'), expandedGroups);
+    console.log('Bestiary synced:', ENEMY_TYPES.length, 'entries.');
+  } catch (err) {
+    console.error('Bestiary sync error:', err);
+    // showToast('No se pudo sincronizar con el Bestiario.', 'warning');
+  }
+}
+
 // ── App Initialization ─────────────────────────────────────
 try {
   console.log('D&D MapForge — Initializing...');
@@ -382,6 +512,7 @@ try {
   updateZoomDisplay();
   bindInitiativeControls();
   bindMapSlotControls();
+  initBestiarySync();
 
   // Center the map on first load
   const vpInit = state.getAll().viewport;

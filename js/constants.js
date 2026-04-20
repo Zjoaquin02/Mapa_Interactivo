@@ -74,7 +74,7 @@ export const CHARACTER_CLASSES = [
 ];
 
 // ── Enemy Types ───────────────────────────────────────────────
-export const ENEMY_TYPES = [
+export const DEFAULT_ENEMIES = [
   // Original
   { id: 'goblin',   label: 'Goblin',          icon: '👺', color: '#226622', border: '#44aa44', defaultHp: 15 },
   { id: 'orc',      label: 'Orco',            icon: '👹', color: '#553300', border: '#aa6600', defaultHp: 30 },
@@ -92,6 +92,20 @@ export const ENEMY_TYPES = [
   { id: 'griffon',  label: 'Grifo',           icon: '🦅', color: '#664422', border: '#ddaa33', defaultHp: 38, hasImage: true },
   { id: 'lich',     label: 'Lich',            icon: '💀', color: '#111133', border: '#eeeeff', defaultHp: 65, hasImage: true },
 ];
+
+export let ENEMY_TYPES = [...DEFAULT_ENEMIES];
+
+export function updateEnemyTypes(newList) {
+  ENEMY_TYPES.length = 0;
+  ENEMY_TYPES.push(...newList);
+}
+
+export const ENEMY_VARIANTS = {};
+
+export function updateEnemyVariants(id, data) {
+  ENEMY_VARIANTS[id] = data;
+}
+
 
 // ── Layer Definitions ─────────────────────────────────────────
 export const LAYERS = {

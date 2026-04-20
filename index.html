@@ -292,80 +292,10 @@
         <div class="panel-scroll">
           <p class="panel-hint">Máx. <strong>30 fichas</strong>. Clic para colocar · arrastra para mover · clic derecho
             para eliminar.</p>
-          <div class="item-grid item-grid--chars">
-            <!-- Original 6 -->
-            <button class="item-btn char-btn" data-id="goblin" style="--item-color:#226622"><span
-                class="char-icon">👺</span>
-              <div class="char-info"><span class="char-name">Goblin</span><span class="char-hint">Ágil · 15 HP</span>
-              </div>
-            </button>
-            <button class="item-btn char-btn" data-id="orc" style="--item-color:#553300"><span
-                class="char-icon">👹</span>
-              <div class="char-info"><span class="char-name">Orco</span><span class="char-hint">Bruto · 30 HP</span>
-              </div>
-            </button>
-            <button class="item-btn char-btn" data-id="skeleton" style="--item-color:#777777"><span
-                class="char-icon">💀</span>
-              <div class="char-info"><span class="char-name">Esqueleto</span><span class="char-hint">No-muerto · 18
-                  HP</span></div>
-            </button>
-            <button class="item-btn char-btn" data-id="dragon" style="--item-color:#cc2200"><span
-                class="char-icon">🐉</span>
-              <div class="char-info"><span class="char-name">Dragón</span><span class="char-hint">Jefe · 80 HP</span>
-              </div>
-            </button>
-            <button class="item-btn char-btn" data-id="zombie" style="--item-color:#335533"><span
-                class="char-icon">🧟</span>
-              <div class="char-info"><span class="char-name">Zombie</span><span class="char-hint">Tenaz · 22 HP</span>
-              </div>
-            </button>
-            <button class="item-btn char-btn" data-id="demon" style="--item-color:#550011"><span
-                class="char-icon">😈</span>
-              <div class="char-info"><span class="char-name">Demonio</span><span class="char-hint">Averno · 50 HP</span>
-              </div>
-            </button>
-            <!-- New 8 —— sprite sheet -->
-            <button class="item-btn char-btn" data-id="spider" style="--item-color:#330044"><span
-                class="char-icon">🕷️</span>
-              <div class="char-info"><span class="char-name">Araña Gigante</span><span class="char-hint">Telaraña · 20
-                  HP</span></div>
-            </button>
-            <button class="item-btn char-btn" data-id="troll" style="--item-color:#1a4a1a"><span
-                class="char-icon">🧌</span>
-              <div class="char-info"><span class="char-name">Troll</span><span class="char-hint">Regeneración · 45
-                  HP</span></div>
-            </button>
-            <button class="item-btn char-btn" data-id="vampire" style="--item-color:#550022"><span
-                class="char-icon">🧛</span>
-              <div class="char-info"><span class="char-name">Vampiro</span><span class="char-hint">Drenaje vital · 55
-                  HP</span></div>
-            </button>
-            <button class="item-btn char-btn" data-id="warlock" style="--item-color:#1a1155"><span
-                class="char-icon">🧙</span>
-              <div class="char-info"><span class="char-name">Hechicero Oscuro</span><span class="char-hint">Maldiciones
-                  · 35 HP</span></div>
-            </button>
-            <button class="item-btn char-btn" data-id="bandit" style="--item-color:#443322"><span
-                class="char-icon">🗡️</span>
-              <div class="char-info"><span class="char-name">Bandido</span><span class="char-hint">Emboscada · 15
-                  HP</span></div>
-            </button>
-            <button class="item-btn char-btn" data-id="werewolf" style="--item-color:#444455"><span
-                class="char-icon">🐺</span>
-              <div class="char-info"><span class="char-name">Hombre Lobo</span><span class="char-hint">Licántropo · 40
-                  HP</span></div>
-            </button>
-            <button class="item-btn char-btn" data-id="griffon" style="--item-color:#664422"><span
-                class="char-icon">🦅</span>
-              <div class="char-info"><span class="char-name">Grifo</span><span class="char-hint">Vuelo · 38 HP</span>
-              </div>
-            </button>
-            <button class="item-btn char-btn" data-id="lich" style="--item-color:#111133"><span
-                class="char-icon">💀</span>
-              <div class="char-info"><span class="char-name">Lich</span><span class="char-hint">No-muerto arcano · 65
-                  HP</span></div>
-            </button>
+          <div class="item-grid item-grid--chars" id="enemy-list-grid">
+            <!-- Dynamic content from Bestiary -->
           </div>
+
         </div>
       </div>
 

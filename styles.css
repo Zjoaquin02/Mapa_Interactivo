@@ -249,7 +249,9 @@ body {
 .erase-btn.active { background: rgba(239,68,68,0.22); border-color: var(--danger); color: var(--danger); box-shadow: 0 0 8px var(--danger-glow); }
 
 /* ── Item grid ──────────────────────────────────────────── */
-.item-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+/* ── Item grid ──────────────────────────────────────────── */
+.item-grid { display: grid; grid-template-columns: 1fr; gap: 7px; width: 100%; }
+.items-enemies.item-grid { grid-template-columns: 1fr !important; }
 
 .item-btn {
   background: var(--bg-card);
@@ -285,9 +287,145 @@ body {
 }
 .item-btn.active { animation: pulse-select 2.4s ease-in-out infinite; }
 
+/* ── Groups & Variants ──────────────────────────────────── */
+.enemy-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  grid-column: 1 / -1;
+  margin-bottom: 4px;
+}
+
+.group-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: linear-gradient(90deg, rgba(124, 58, 237, 0.12), transparent);
+  border: 1px solid rgba(124, 58, 237, 0.25);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--ease);
+  text-align: left;
+}
+.group-header:hover {
+  background: linear-gradient(90deg, rgba(124, 58, 237, 0.2), rgba(124, 58, 237, 0.05));
+  border-color: var(--accent);
+}
+.group-header.expanded {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom-color: transparent;
+  background: linear-gradient(90deg, rgba(124, 58, 237, 0.18), rgba(124, 58, 237, 0.08));
+}
+
+.group-chevron {
+  font-size: 10px;
+  color: var(--accent-light);
+  transition: transform 0.3s ease;
+  margin-left: auto;
+}
+.group-header.expanded .group-chevron { transform: rotate(180deg); }
+
+/* ── Custom Tome Icon ───────────────────────────────────── */
+.tome-icon {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #7c3aed, #4c1d95);
+  border-radius: 4px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.4);
+  border: 1.5px solid rgba(255,255,255,0.2);
+}
+.tome-icon::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(255,255,255,0.3);
+  box-shadow: 1px 0 0 rgba(0,0,0,0.2);
+}
+.tome-icon::after {
+  content: '📖';
+  font-size: 16px;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+}
+
+.variant-grid {
+  display: none;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+  margin-top: -4px;
+}
+.variant-grid.visible { display: grid; }
+
+.variant-btn {
+  padding: 8px 12px;
+  font-size: 11px;
+}
+.variant-btn .char-icon { font-size: 20px; }
+
+/* ── Info Link ──────────────────────────────────────────── */
+.info-link {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 28px;
+  height: 28px;
+  background: rgba(124, 58, 237, 0.2);
+  border: 1px solid var(--accent);
+  color: var(--accent-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  text-decoration: none;
+  z-index: 10;
+  transition: all var(--ease);
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  cursor: pointer;
+}
+.info-link:hover {
+  background: var(--accent);
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+.info-link::before {
+  content: 'ℹ️';
+  font-size: 12px;
+}
+
 .item-icon  { font-size: 24px; line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
 .item-label { font-size: 10px; color: var(--text-secondary); text-align: center; line-height: 1.2; }
 .item-btn.active .item-label { color: var(--text-primary); }
+
+.item-btn.char-btn {
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  padding-right: 42px; /* Space for info link */
+}
+.char-info {
+  align-items: flex-start;
+  gap: 2px;
+}
 
 .tile-swatch { width: 40px; height: 40px; border-radius: 6px; border: 1.5px solid rgba(255,255,255,0.1); flex-shrink: 0; }
 .tile-snow    { background: linear-gradient(135deg,#d4ecf7,#b0d8f0); }
