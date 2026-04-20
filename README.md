@@ -146,3 +146,25 @@ Modelos prearmados (9 en total) incluyendo nuevos escenarios como **Pantano Tóx
 - **Grilla:** 50 × 35 (3200 × 2240 px)
 - **Celda:** 64 × 64 px
 - **Compatibilidad:** 100% Offline tras la primera carga.
+
+---
+
+## 🌐 Multijugador Online (P2P)
+
+D&D MapForge utiliza tecnología **PeerJS** para conectar al Director de Juego y a los Héroes sin necesidad de un servidor central.
+
+### 👑 Para el Director de Juego (DM)
+1. Al abrir la aplicación, elige **Crear Sala**.
+2. Ingresa tu nombre y pulsa el botón púrpura.
+3. Se generará un código único de 6 caracteres (ej. `A1B2C3`) que aparecerá en la barra superior.
+4. Pulsa el botón 📋 al lado del código para copiarlo y compártelo con tus jugadores.
+5. Los cambios que hagas en el mapa, niebla de guerra, enemigos e iniciativa se sincronizarán en tiempo real con todos los conectados.
+
+### 🛡️ Para los Héroes (Jugadores)
+1. Ingresa tu nombre y selecciona tu **Clase de Personaje**.
+2. Introduce el **Código de Sala** que te pasó el DM.
+3. Pulsa **Unirse**.
+4. **Restricciones:** Los Héroes solo pueden mover su propia ficha y ver la niebla de guerra que el DM haya despejado. No pueden editar el mapa ni ver fichas enemigas ocultas.
+
+> [!TIP]
+> Si pierdes la conexión, la página se recargará automáticamente para intentar reconectar en 3 segundos. Asegúrate de que el DM no haya cerrado la sala.

@@ -75,6 +75,12 @@ class StateManager {
     if (!this._state.layers.fog) this._state.layers.fog = { locked: false, visible: true };
     if (!this._state.drawings)   this._state.drawings   = [];
     if (!this._state.layers.draw) this._state.layers.draw = { locked: false, visible: true };
+    
+    // Always ensure session exists (not persisted)
+    if (!this._state.session) {
+      this._state.session = DEFAULT_STATE().session;
+    }
+    
     this._listeners = [];
   }
 
@@ -384,7 +390,9 @@ class StateManager {
     if (!slot) return false;
     try {
       const loaded = JSON.parse(slot.data);
+      const backupSession = { ...this._state.session };
       this._state = loaded;
+      this._state.session = backupSession;
       if (!this._state.initiative) this._state.initiative = DEFAULT_STATE().initiative;
       if (!this._state.viewport)   this._state.viewport   = DEFAULT_STATE().viewport;
       if (!this._state.mapName)    this._state.mapName    = DEFAULT_STATE().mapName;
@@ -392,6 +400,10 @@ class StateManager {
       if (!this._state.layers.fog) this._state.layers.fog = { locked: false, visible: true };
       if (!this._state.drawings)   this._state.drawings   = [];
       if (!this._state.layers.draw) this._state.layers.draw = { locked: false, visible: true };
+      
+      // Ensure session exists after loading an old slot
+      if (!this._state.session) this._state.session = DEFAULT_STATE().session;
+      
       this._state.floorRevision++;
       this._notify('all');
       this._save();
@@ -400,13 +412,19 @@ class StateManager {
   }
 
   loadPreset(presetState) {
+    const backupSession = { ...this._state.session };
     this._state = presetState;
+    this._state.session = backupSession;
     if (!this._state.initiative) this._state.initiative = { entries: [], currentIndex: -1, round: 1 };
     if (!this._state.viewport)   this._state.viewport   = { zoom: 0.8, panX: 40, panY: 40 };
     if (!this._state.fogGrid)    this._state.fogGrid    = {};
     if (!this._state.layers.fog) this._state.layers.fog = { locked: false, visible: true };
     if (!this._state.drawings)   this._state.drawings   = [];
     if (!this._state.layers.draw) this._state.layers.draw = { locked: false, visible: true };
+    
+    // Ensure session exists after loading a preset
+    if (!this._state.session) this._state.session = DEFAULT_STATE().session;
+    
     this._state.floorRevision++;
     this._notify('all');
     this._save();

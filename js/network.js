@@ -10,8 +10,21 @@ class NetworkManager {
     this.peer = null;
     this.connections = []; // Only for DM (list of hero connections)
     this.connToDM = null;  // Only for Heroes
-    this.role = 'dm';
+    this.role = null;
     this.isReady = false;
+    this._updateStatusDot('ready');
+  }
+
+  _updateStatusDot(status) {
+    const dot = document.getElementById('network-status-dot');
+    if (!dot) return;
+    if (status === 'error') {
+      dot.className = 'status-dot status-dot--error';
+      dot.title = 'Error de conexión';
+    } else {
+      dot.className = 'status-dot';
+      dot.title = 'Conexión activa';
+    }
   }
 
   _getPeerConstructor() {
@@ -41,6 +54,7 @@ class NetworkManager {
 
       this.peer.on('open', id => {
         state.getAll().session.roomCode = id;
+        state._notify('session'); // Update UI
         this.isReady = true;
         console.log('Room created with ID:', id);
         this._setupHostListeners();
@@ -49,6 +63,7 @@ class NetworkManager {
 
       this.peer.on('error', err => {
         console.error('Peer error:', err);
+        this._updateStatusDot('error');
         reject(err);
       });
     });
@@ -78,13 +93,17 @@ class NetworkManager {
 
         conn.on('open', () => {
           this.isReady = true;
+          state._notify('session'); // Show room code on UI
           this._setupClientListeners(conn);
           // Notify DM about identity
           conn.send({ type: 'JOIN', nickname });
           resolve();
         });
 
-        conn.on('error', err => reject(err));
+        conn.on('error', err => {
+          this._updateStatusDot('error');
+          reject(err);
+        });
       });
 
       setTimeout(() => { if (!this.isReady) reject('Timeout: No se pudo conectar a la sala.'); }, 15000);
@@ -120,8 +139,14 @@ class NetworkManager {
   _setupClientListeners(conn) {
     conn.on('data', data => this._handleInboundData(data, conn));
     conn.on('close', () => {
-      showToast('Se ha perdido la conexión con el Director de Juego.', 'error');
-      setTimeout(() => location.reload(), 3000);
+      this._updateStatusDot('error');
+      showToast('Conexión perdida con el DM. Reconectando...', 'danger');
+      setTimeout(() => window.location.reload(), 3000);
+    });
+    
+    conn.on('error', (err) => {
+      this._updateStatusDot('error');
+      console.error('Connection error:', err);
     });
   }
 
@@ -131,14 +156,23 @@ class NetworkManager {
         const st = state.getAll();
         // Update local state without triggering a broadcast back
         // We selectively update grids and arrays to avoid losing local session info
-        Object.assign(st.floorGrid, msg.state.floorGrid);
-        Object.assign(st.fogGrid, msg.state.fogGrid);
+        st.floorGrid = { ...msg.state.floorGrid };
+        st.fogGrid   = { ...msg.state.fogGrid };
         st.envObjects = [...msg.state.envObjects];
         st.characters = [...msg.state.characters];
         st.enemies    = [...msg.state.enemies];
         st.drawings   = [...msg.state.drawings];
         st.initiative = JSON.parse(JSON.stringify(msg.state.initiative));
         st._uidCounter = msg.state._uidCounter;
+
+        // AUTO-RESET: If we have a character but it's not on the new map, clear our local handle
+        if (st.session.myHeroUid) {
+          const stillExists = st.characters.some(ch => ch.uid === st.session.myHeroUid);
+          if (!stillExists) {
+            st.session.myHeroUid = null;
+            state._notify('session');
+          }
+        }
         
         // Notify local UI
         state._notify('all');

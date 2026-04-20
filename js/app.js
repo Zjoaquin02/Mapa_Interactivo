@@ -13,17 +13,7 @@ import { showToast } from './ui_utils.js';
 
 // ── Canvas Setup ──────────────────────────────────────────
 const canvas   = document.getElementById('map-canvas');
-window.DND_APP_LOADED = true;
 
-// ── Global Error Handler for Debugging ───────────────────
-window.addEventListener('error', (event) => {
-  console.error('Fatal crash:', event.error);
-  const msg = event.error ? event.error.message : 'Error desconocido';
-  const debugDiv = document.createElement('div');
-  debugDiv.style = 'position:fixed; top:10px; right:10px; background:rgba(220,0,0,0.9); color:white; padding:15px; border:2px solid gold; z-index:9999; font-weight:bold; border-radius:8px;';
-  debugDiv.innerHTML = `⚠️ ERROR FATAL:<br>${msg}<br><small>Revisa la consola (F12) para más detalles.</small>`;
-  document.body.appendChild(debugDiv);
-});
 
 // ── Lobby Logic (Moved to top for priority) ──────────────
 const lobbyOverlay = document.getElementById('lobby-overlay');
@@ -38,10 +28,7 @@ function updateLobbyStatus(msg, isError = false) {
 }
 
 function bindLobby() {
-  console.log('Binding lobby events...');
-  
   document.getElementById('btn-create-room')?.addEventListener('click', async () => {
-    console.log('Click en Crear Sala');
     const nickEl = document.getElementById('input-nickname');
     const nick = nickEl ? nickEl.value.trim() : '';
     
@@ -61,7 +48,6 @@ function bindLobby() {
   });
 
   document.getElementById('btn-join-room')?.addEventListener('click', async () => {
-    console.log('Click en Unirse a Sala');
     const nick = document.getElementById('input-nickname')?.value.trim();
     const room = document.getElementById('input-room-code')?.value.trim().toUpperCase();
     
@@ -71,54 +57,16 @@ function bindLobby() {
     try {
       await network.initClient(room, nick);
       updateLobbyStatus('');
-      showLobbyCharacterSelection();
+      
+      // Hide lobby and set mode directly
+      if (lobbyOverlay) lobbyOverlay.style.display = 'none';
+      document.body.classList.add('is-hero');
+      showToast(`¡Conectado! Elige tu clase en el panel lateral.`, 'success');
     } catch (err) {
       updateLobbyStatus('No se pudo encontrar la sala.', true);
     }
   });
 }
-
-function showLobbyCharacterSelection() {
-  if (lobbyStep1) lobbyStep1.classList.remove('active');
-  if (lobbyStepSel) lobbyStepSel.classList.add('active');
-  const grid = document.getElementById('char-selection-grid');
-  if (!grid) return;
-  grid.innerHTML = '';
-  
-  CHARACTER_CLASSES.forEach(cls => {
-    const btn = document.createElement('button');
-    btn.className = 'item-btn char-btn';
-    btn.dataset.id = cls.id;
-    btn.innerHTML = `
-      <span class="char-icon">${cls.icon}</span>
-      <div class="char-info">
-        <span class="char-name">${cls.label}</span>
-        <span class="char-hint">${cls.defaultHp} HP</span>
-      </div>
-    `;
-    btn.addEventListener('click', () => {
-      grid.querySelectorAll('.item-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const confirmBtn = document.getElementById('btn-confirm-selection');
-      if (confirmBtn) confirmBtn.disabled = false;
-      state.getAll().session.selectedClassId = cls.id;
-    });
-    grid.appendChild(btn);
-  });
-}
-
-document.getElementById('btn-confirm-selection')?.addEventListener('click', () => {
-  const sess = state.getAll().session;
-  const classId = sess.selectedClassId;
-  const nickname = sess.nickname;
-  
-  document.body.classList.add('is-hero');
-  if (lobbyOverlay) lobbyOverlay.style.display = 'none';
-  
-  state.setActiveTool('characters');
-  state.setActiveItem(classId);
-  showToast(`¡Bienvenido ${nickname}! Clica en el mapa para posicionarte.`, 'success');
-});
 
 bindLobby();
 
@@ -391,7 +339,38 @@ state.subscribe((key, st) => {
   }
   if (key === 'layers' || key === 'all') updateLayerUI();
   if (key === 'viewport' || key === 'all') updateZoomDisplay();
+  
+  if (key === 'session' || key === 'all') {
+    const st = state.getAll();
+    const { roomCode, myHeroUid, role } = st.session;
+    
+    // Room code visibility
+    const rcContainer = document.getElementById('room-code-container');
+    const rcDisplay = document.getElementById('room-code-display');
+    if (rcContainer && rcDisplay) {
+      if (roomCode) {
+        rcContainer.style.display = 'flex';
+        rcDisplay.textContent = roomCode;
+      } else {
+        rcContainer.style.display = 'none';
+      }
+    }
+
+    // Hero Reset Button Visibility (Only for heroes with an active character)
+    const resetBtnContainer = document.getElementById('hero-reset-container');
+    if (resetBtnContainer) {
+      resetBtnContainer.style.display = (role === 'hero' && myHeroUid) ? 'flex' : 'none';
+    }
+  }
   render();
+});
+
+// ── Hero Manual Reset ────────────────────────────────────
+document.getElementById('btn-hero-reset')?.addEventListener('click', () => {
+  if (!confirm('¿Seguro que quieres liberar tu personaje actual? Podrás elegir una clase diferente.')) return;
+  state.getAll().session.myHeroUid = null;
+  state._notify('session');
+  showToast('Personaje liberado. Elige uno nuevo.', 'info');
 });
 
 // (Lobby logic moved to top)
@@ -414,12 +393,16 @@ try {
     }, 100);
   }
   
+  // ── Copy Room Code Feature ───────────────────────────────
+  document.getElementById('btn-copy-room-code')?.addEventListener('click', () => {
+    const code = state.getAll().session.roomCode;
+    if (!code) return;
+    navigator.clipboard.writeText(code).then(() => {
+      showToast('¡Código de sala copiado! 📋', 'info');
+    });
+  });
+
   console.log('D&D MapForge — Ready.');
 } catch (err) {
   console.error('Fatal initialization error:', err);
-  // Show error on screen for easier debugging if console is closed
-  const errDiv = document.createElement('div');
-  errDiv.style = 'position:fixed; bottom:0; left:0; background:red; color:white; padding:10px; z-index:9999; font-size:12px;';
-  errDiv.textContent = 'Error de inicio: ' + err.message;
-  document.body.appendChild(errDiv);
 }

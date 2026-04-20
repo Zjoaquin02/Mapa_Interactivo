@@ -11,16 +11,6 @@
   <link rel="icon" type="image/png" href="assets/Fogata.png" />
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   
-  <!-- Diagnostic Script (Non-module) -->
-  <script>
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        if (!window.DND_APP_LOADED) {
-          alert("⚠️ ERROR DE SEGURIDAD DEL NAVEGADOR:\n\nEl navegador ha bloqueado la carga del juego porque lo estás abriendo como un archivo local (file://).\n\nSOLUCIÓN:\n1. Usa 'Live Server' en VS Code.\n2. O usa una extensión de 'Web Server'.\n3. O arrastra la carpeta a un servidor local.\n\nLos navegadores modernos no permiten cargar módulos JS desde el disco duro por seguridad.");
-        }
-      }, 1500);
-    });
-  </script>
 </head>
 
 <body>
@@ -42,9 +32,15 @@
 
     <div class="toolbar-sep"></div>
 
-    <button class="tool-btn tool-btn--purple" id="btn-open-initiative" title="Panel de iniciativa">⚔️
-      Iniciativa</button>
+    <button class="tool-btn tool-btn--purple" id="btn-open-initiative" title="Panel de iniciativa">⚔️ Iniciativa</button>
     <button class="tool-btn tool-btn--purple" id="btn-open-maps" title="Guardar / cargar mapas">🗺️ Mapas</button>
+
+    <div id="room-code-container" class="room-code-badge" style="display:none;">
+      <span class="status-dot" id="network-status-dot" title="Conexión activa"></span>
+      <span class="room-code-label">SALA:</span>
+      <span id="room-code-display" class="room-code-value">------</span>
+      <button class="tool-btn copy-btn" id="btn-copy-room-code" title="Copiar código">📋</button>
+    </div>
 
     <div class="toolbar-sep"></div>
 
@@ -488,6 +484,12 @@
             <button class="layer-eye-btn" data-layer="characters" title="Mostrar/ocultar">👁️</button>
             <button class="layer-lock-btn" data-layer="characters" title="Fijar/desfijar">🔓</button>
           </div>
+          
+          <!-- Hero Reset Button (Visible only to Heroes with a character) -->
+          <div class="layer-row hero-only-ui" id="hero-reset-container" style="display:none; padding: 10px; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 5px;">
+            <button class="tool-btn" id="btn-hero-reset" style="width:100%; justify-content:center; background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.3); color:var(--danger)">🔄 Cambiar Personaje</button>
+          </div>
+
           <div class="layer-row">
             <span class="layer-icon">💀</span>
             <span class="layer-name">Enemigos</span>
@@ -624,16 +626,6 @@
         </div>
       </div>
 
-      <div id="lobby-step-select" class="lobby-step">
-        <p class="lobby-hint">¡Sala encontrada! Elige tu clase de héroe.</p>
-        <div id="char-selection-grid" class="item-grid item-grid--chars" style="max-height: 250px; overflow-y: auto;">
-          <!-- Se llena con JS -->
-        </div>
-        <button id="btn-confirm-selection" class="lobby-btn lobby-btn--main" style="margin-top:20px; width: 100%;"
-          disabled>
-          Entrar al mapa
-        </button>
-      </div>
 
       <div id="lobby-status" class="lobby-status"></div>
     </div>

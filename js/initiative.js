@@ -41,6 +41,10 @@ export function renderInitiativePanel() {
     row.className = `init-entry${isActive ? ' init-entry--active' : ''}`;
     row.dataset.uid = entry.uid;
 
+    const { role, myHeroUid } = st.session;
+    const isOwner = role === 'dm' || (role === 'hero' && entry.uid === myHeroUid);
+    const disabledAttr = isOwner ? '' : 'disabled style="opacity:0.3;cursor:not-allowed;"';
+
     row.innerHTML = `
       <div class="init-pos">${i + 1}</div>
       <div class="init-token" style="background:${entry.color};border:2px solid ${entry.border};">
@@ -51,22 +55,22 @@ export function renderInitiativePanel() {
         <div class="init-type-badge init-type--${entry.type}">${entry.type === 'hero' ? '⚔️ Héroe' : '💀 Enemigo'}</div>
         ${hpBarHtml(entry.hp, entry.maxHp)}
         <div class="init-hp-row">
-          <button class="init-hp-btn" data-uid="${entry.uid}" data-delta="-5" title="−5 HP">−5</button>
-          <button class="init-hp-btn" data-uid="${entry.uid}" data-delta="-1" title="−1 HP">−1</button>
-          <span class="init-hp-val">${entry.hp} / <input type="number" class="init-max-hp-input" data-uid="${entry.uid}" value="${entry.maxHp}" title="HP Máximo" min="1"></span>
-          <button class="init-hp-btn" data-uid="${entry.uid}" data-delta="+1" title="+1 HP">+1</button>
-          <button class="init-hp-btn" data-uid="${entry.uid}" data-delta="+5" title="+5 HP">+5</button>
+          <button class="init-hp-btn" data-uid="${entry.uid}" data-delta="-5" title="−5 HP" ${disabledAttr}>−5</button>
+          <button class="init-hp-btn" data-uid="${entry.uid}" data-delta="-1" title="−1 HP" ${disabledAttr}>−1</button>
+          <span class="init-hp-val">${entry.hp} / <input type="number" class="init-max-hp-input" data-uid="${entry.uid}" value="${entry.maxHp}" title="HP Máximo" min="1" ${disabledAttr}></span>
+          <button class="init-hp-btn" data-uid="${entry.uid}" data-delta="+1" title="+1 HP" ${disabledAttr}>+1</button>
+          <button class="init-hp-btn" data-uid="${entry.uid}" data-delta="+5" title="+5 HP" ${disabledAttr}>+5</button>
         </div>
       </div>
       <div class="init-roll-col">
         <div class="init-roll-controls">
-          <button class="init-mod-btn" data-uid="${entry.uid}" data-delta="-1" title="−1 Iniciativa">▼</button>
+          <button class="init-mod-btn" data-uid="${entry.uid}" data-delta="-1" title="−1 Iniciativa" ${disabledAttr}>▼</button>
           <div class="init-roll ${entry.roll !== null ? 'init-roll--set' : ''}">${entry.roll ?? '—'}</div>
-          <button class="init-mod-btn" data-uid="${entry.uid}" data-delta="1" title="+1 Iniciativa">▲</button>
+          <button class="init-mod-btn" data-uid="${entry.uid}" data-delta="1" title="+1 Iniciativa" ${disabledAttr}>▲</button>
         </div>
         <div class="init-roll-actions">
-          <button class="init-roll-btn" data-uid="${entry.uid}" title="Tirar d20">🎲</button>
-          <button class="init-remove-btn" data-uid="${entry.uid}" title="Quitar">✕</button>
+          <button class="init-roll-btn" data-uid="${entry.uid}" title="Tirar d20" ${disabledAttr}>🎲</button>
+          <button class="init-remove-btn" data-uid="${entry.uid}" title="Quitar" ${role === 'dm' ? '' : 'style="display:none;"'}>✕</button>
         </div>
       </div>`;
 
@@ -148,12 +152,17 @@ export function renderInitiativePanel() {
 }
 
 export function bindInitiativeControls() {
+  const st = state.getAll();
+  const { role } = st.session;
+
   document.getElementById('btn-init-sync')?.addEventListener('click', () => {
+    if (role === 'hero') return;
     state.syncInitiativeFromMap();
     showToast('Combatientes sincronizados desde el mapa', 'info');
   });
 
   document.getElementById('btn-init-roll-all')?.addEventListener('click', () => {
+    if (role === 'hero') return;
     if (state.getAll().initiative.entries.length === 0) {
       showToast('Primero añade combatientes', 'warning'); return;
     }
@@ -161,16 +170,36 @@ export function bindInitiativeControls() {
     showToast('¡Iniciativa lanzada! El combate comienza 🎲', 'info');
   });
 
-  document.getElementById('btn-init-next')?.addEventListener('click', () => state.nextTurn());
-  document.getElementById('btn-init-prev')?.addEventListener('click', () => state.prevTurn());
+  document.getElementById('btn-init-next')?.addEventListener('click', () => {
+    if (role === 'hero') return;
+    state.nextTurn();
+  });
+  document.getElementById('btn-init-prev')?.addEventListener('click', () => {
+    if (role === 'hero') return;
+    state.prevTurn();
+  });
 
   document.getElementById('btn-init-clear')?.addEventListener('click', () => {
+    if (role === 'hero') return;
     if (confirm('¿Limpiar toda la iniciativa?')) state.clearInitiative();
   });
 
   // Subscribe to updates
   state.subscribe((key) => {
     if (key === 'initiative' || key === 'all') renderInitiativePanel();
+    
+    // Reactive Visibility: Update controls based on DM/Hero role
+    if (key === 'session' || key === 'all') {
+      const { role } = state.getAll().session;
+      const footer = document.querySelector('.init-footer');
+      const navBtns = document.querySelector('.init-nav-btns');
+      
+      // Footer and Nav are visible for DM or while choosing role (null)
+      // but hidden for Heroes
+      const isVisible = role === 'dm' || !role;
+      if (footer) footer.style.display = isVisible ? 'flex' : 'none';
+      if (navBtns) navBtns.style.display = isVisible ? 'flex' : 'none';
+    }
   });
 
   // Initial render

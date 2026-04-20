@@ -412,7 +412,7 @@ export class MapRenderer {
 
     // ── Fog of War ─────────────────────────────────────────
     if (st.layers.fog && st.layers.fog.visible) {
-      const { role, previewFog } = st.session;
+      const { role, previewFog } = st.session || { role: 'dm', previewFog: false };
       
       if (this.exportMode || role === 'hero') {
         ctx.fillStyle = 'rgba(0,0,0,1)';
