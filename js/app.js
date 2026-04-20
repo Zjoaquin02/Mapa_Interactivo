@@ -7,6 +7,9 @@ import { MapRenderer } from './renderer.js';
 import { bindInteractions } from './interactions.js';
 import { renderInitiativePanel, bindInitiativeControls } from './initiative.js';
 import { renderMapSlots, bindMapSlotControls } from './mapslots.js';
+import { network } from './network.js';
+import { CHARACTER_CLASSES } from './constants.js';
+import { showToast } from './interactions.js';
 
 // ── Canvas Setup ──────────────────────────────────────────
 const canvas   = document.getElementById('map-canvas');
@@ -194,6 +197,17 @@ document.getElementById('btn-reset-all')?.addEventListener('click', () => {
   }
 });
 
+// ── Fog Preview Toggle ────────────────────────────────────
+document.getElementById('btn-toggle-fog-preview')?.addEventListener('click', () => {
+  if (state.getAll().session.role !== 'dm') return;
+  const active = state.toggleFogPreview();
+  const btnIcon = document.getElementById('fog-preview-icon');
+  const btnText = document.getElementById('fog-preview-text');
+  if (btnIcon) btnIcon.textContent = active ? '👁️' : '👁️‍🗨️';
+  if (btnText) btnText.textContent = active ? 'Ocultar real (DM Vision)' : 'Ver a través de niebla';
+  showToast(active ? 'Visión del DM activada' : 'Visión de juego activada');
+});
+
 document.getElementById('btn-export')?.addEventListener('click', () => {
   // Render at full map resolution for export
   const exportCanvas = document.createElement('canvas');
@@ -272,18 +286,83 @@ state.subscribe((key, st) => {
   render();
 });
 
-// ── Init ──────────────────────────────────────────────────
-updateLayerUI();
-updateZoomDisplay();
-bindInitiativeControls();
-bindMapSlotControls();
+// ── Lobby Logic ──────────────────────────────────────────
+const lobbyOverlay = document.getElementById('lobby-overlay');
+const lobbyStep1   = document.getElementById('lobby-step-1');
+const lobbyStepSel = document.getElementById('lobby-step-select');
+const lobbyStatus  = document.getElementById('lobby-status');
 
-// Center the map on first load
-const vp = state.getAll().viewport;
-if (vp.zoom === 0.8 && vp.panX === 40) {
-  setTimeout(() => {
-    const rect = canvas.getBoundingClientRect();
-    state.resetViewport(rect.width, rect.height, GRID_COLS * TILE_SIZE, GRID_ROWS * TILE_SIZE);
-    render();
-  }, 100);
+function updateLobbyStatus(msg, isError = false) {
+  lobbyStatus.textContent = msg;
+  lobbyStatus.style.color = isError ? 'var(--danger)' : 'var(--accent-light)';
 }
+
+document.getElementById('btn-create-room')?.addEventListener('click', async () => {
+  const nick = document.getElementById('input-nickname').value.trim();
+  if (!nick) { updateLobbyStatus('Ingresa un nombre primero.', true); return; }
+  
+  updateLobbyStatus('Creando sala...');
+  try {
+    const id = await network.initHost(nick);
+    lobbyOverlay.style.display = 'none';
+    showToast(`Sala creada: ${id}. ¡Comparte el código!`, 'success');
+    updateLobbyStatus('');
+  } catch (err) {
+    updateLobbyStatus('Error al crear sala. Intenta de nuevo.', true);
+  }
+});
+
+document.getElementById('btn-join-room')?.addEventListener('click', async () => {
+  const nick = document.getElementById('input-nickname').value.trim();
+  const room = document.getElementById('input-room-code').value.trim().toUpperCase();
+  if (!nick || !room) { updateLobbyStatus('Ingresa nombre y código.', true); return; }
+  
+  updateLobbyStatus('Conectando...');
+  try {
+    await network.initClient(room, nick);
+    updateLobbyStatus('');
+    showLobbyCharacterSelection();
+  } catch (err) {
+    updateLobbyStatus('No se pudo encontrar la sala.', true);
+  }
+});
+
+function showLobbyCharacterSelection() {
+  lobbyStep1.classList.remove('active');
+  lobbyStepSel.classList.add('active');
+  const grid = document.getElementById('char-selection-grid');
+  grid.innerHTML = '';
+  
+  CHARACTER_CLASSES.forEach(cls => {
+    const btn = document.createElement('button');
+    btn.className = 'item-btn char-btn';
+    btn.dataset.id = cls.id;
+    btn.innerHTML = `
+      <span class="char-icon">${cls.icon}</span>
+      <div class="char-info">
+        <span class="char-name">${cls.label}</span>
+        <span class="char-hint">${cls.defaultHp} HP</span>
+      </div>
+    `;
+    btn.addEventListener('click', () => {
+      grid.querySelectorAll('.item-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('btn-confirm-selection').disabled = false;
+      state.getAll().session.selectedClassId = cls.id;
+    });
+    grid.appendChild(btn);
+  });
+}
+
+document.getElementById('btn-confirm-selection')?.addEventListener('click', () => {
+  const classId = state.getAll().session.selectedClassId;
+  const nickname = state.getAll().session.nickname;
+  
+  document.body.classList.add('is-hero');
+  lobbyOverlay.style.display = 'none';
+  
+  // Enter "Placement Mode"
+  state.setActiveTool('characters');
+  state.setActiveItem(classId);
+  showToast(`¡Bienvenido ${nickname}! Clica en el mapa para posicionarte.`, 'success');
+});

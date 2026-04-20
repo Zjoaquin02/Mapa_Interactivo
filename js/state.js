@@ -37,6 +37,15 @@ const DEFAULT_STATE = () => ({
   },
 
   _uidCounter: 0,
+
+  // Online Session (not persisted in saves)
+  session: {
+    role: 'dm', // 'dm' or 'hero'
+    nickname: '',
+    roomCode: '',
+    myHeroUid: null,
+    previewFog: false,
+  }
 });
 
 // ── Map Slots (stored separately in localStorage) ─────────────
@@ -160,6 +169,12 @@ class StateManager {
     this._state.fogGrid = {};
     this._notify('all');
     this._save();
+  }
+
+  toggleFogPreview() {
+    this._state.session.previewFog = !this._state.session.previewFog;
+    this._notify('session');
+    return this._state.session.previewFog;
   }
 
   // ── Drawings & AoE ────────────────────────────────────────
@@ -399,7 +414,9 @@ class StateManager {
 
   // ── Reset ─────────────────────────────────────────────────
   resetAll() {
+    const backupSession = { ...this._state.session };
     this._state = DEFAULT_STATE();
+    this._state.session = backupSession;
     this._state.floorRevision++;
     this._notify('all'); this._save();
   }

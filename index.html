@@ -7,6 +7,7 @@
   <meta name="description" content="Constructor de mapas interactivo con zoom, iniciativa y slots de guardado para campañas de D&D."/>
   <link rel="stylesheet" href="styles.css"/>
   <link rel="icon" type="image/png" href="assets/Fogata.png"/>
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
 <body>
 
@@ -257,6 +258,13 @@
         <button class="erase-btn" data-layer="fog" style="width:100%; text-align:left; padding: 12px; margin-top:8px; border-radius: 8px;">
           <span style="font-size:18px; margin-right:8px;">🧹</span> Borrar Niebla
         </button>
+
+        <div style="margin-top:16px; padding:12px; background:rgba(255,255,255,0.05); border-radius:8px;">
+          <div style="font-size:11px; text-transform:uppercase; color:var(--text-secondary); margin-bottom:8px;">Visión del Director</div>
+          <button id="btn-toggle-fog-preview" class="slot-btn" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px;">
+            <span id="fog-preview-icon">👁️‍🗨️</span> <span id="fog-preview-text">Ver a través de niebla</span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -410,6 +418,56 @@
 
   </aside>
 
+</div>
+
+<!-- ── Lobby / Online Overlay ──────────────────────────────── -->
+<div id="lobby-overlay" class="lobby-overlay">
+  <div class="lobby-card">
+    <div class="lobby-header">
+      <img src="assets/Fogata.png" alt="Logo" class="lobby-logo">
+      <h1>D&D MapForge <span>Online</span></h1>
+    </div>
+    
+    <div id="lobby-step-1" class="lobby-step active">
+      <p class="lobby-hint">Bienvenido aventurero. Ingresa tu nombre para comenzar.</p>
+      <input type="text" id="input-nickname" placeholder="Tu apodo (ej: Legolas)..." class="lobby-input">
+      
+      <div class="lobby-actions">
+        <button id="btn-create-room" class="lobby-btn lobby-btn--main">
+          <span class="btn-icon">🏰</span>
+          <div class="btn-text">
+            <strong>Crear Sala</strong>
+            <span>Sé el Director de Juego</span>
+          </div>
+        </button>
+
+        <div class="lobby-sep"><span>o</span></div>
+
+        <div class="join-group">
+          <input type="text" id="input-room-code" placeholder="Código de sala..." class="lobby-input lobby-input--small">
+          <button id="btn-join-room" class="lobby-btn">
+            <span class="btn-icon">⚔️</span>
+            <div class="btn-text">
+              <strong>Unirse</strong>
+              <span>Jugar como Héroe</span>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="lobby-step-select" class="lobby-step">
+      <p class="lobby-hint">¡Sala encontrada! Elige tu clase de héroe.</p>
+      <div id="char-selection-grid" class="item-grid item-grid--chars" style="max-height: 250px; overflow-y: auto;">
+        <!-- Se llena con JS -->
+      </div>
+      <button id="btn-confirm-selection" class="lobby-btn lobby-btn--main" style="margin-top:20px; width: 100%;" disabled>
+        Entrar al mapa
+      </button>
+    </div>
+
+    <div id="lobby-status" class="lobby-status"></div>
+  </div>
 </div>
 
 <!-- ── Toasts ─────────────────────────────────────────────── -->

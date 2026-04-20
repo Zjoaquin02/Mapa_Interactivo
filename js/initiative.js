@@ -3,6 +3,7 @@
 // ============================================================
 import { state } from './state.js';
 import { showToast } from './interactions.js';
+import { network } from './network.js';
 
 const container = () => document.getElementById('initiative-list');
 const roundEl   = () => document.getElementById('initiative-round');
@@ -78,8 +79,22 @@ export function renderInitiativePanel() {
       e.stopPropagation();
       const uid   = +btn.dataset.uid;
       const delta = +btn.dataset.delta;
+      const { role, myHeroUid } = state.getAll().session;
+      
+      if (role === 'hero' && uid !== myHeroUid) {
+        showToast('Solo puedes modificar tu propia vida.', 'warning');
+        return;
+      }
+
       const entry = state.getAll().initiative.entries.find(e => e.uid === uid);
-      if (entry) state.setEntryHp(uid, entry.hp + delta);
+      if (entry) {
+        const newHp = entry.hp + delta;
+        if (role === 'hero') {
+          network.sendCommand('UPDATE_HP', { uid, hp: newHp });
+        } else {
+          state.setEntryHp(uid, newHp);
+        }
+      }
     });
   });
 
@@ -105,8 +120,20 @@ export function renderInitiativePanel() {
   list.querySelectorAll('.init-roll-btn').forEach(btn => {
     btn.addEventListener('click', e => {
       e.stopPropagation();
+      const uid = +btn.dataset.uid;
+      const { role, myHeroUid } = state.getAll().session;
+      
+      if (role === 'hero' && uid !== myHeroUid) {
+        showToast('Solo puedes tirar tu propia iniciativa.', 'warning');
+        return;
+      }
+
       const roll = Math.floor(Math.random() * 20) + 1;
-      state.setInitiativeRoll(+btn.dataset.uid, roll);
+      if (role === 'hero') {
+        network.sendCommand('UPDATE_INIT', { uid, roll });
+      } else {
+        state.setInitiativeRoll(uid, roll);
+      }
     });
   });
 
@@ -114,6 +141,7 @@ export function renderInitiativePanel() {
   list.querySelectorAll('.init-remove-btn').forEach(btn => {
     btn.addEventListener('click', e => {
       e.stopPropagation();
+      if (state.getAll().session.role === 'hero') return;
       state.removeFromInitiative(+btn.dataset.uid);
     });
   });

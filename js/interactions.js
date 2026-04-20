@@ -3,6 +3,7 @@
 // ============================================================
 import { TILE_SIZE, GRID_COLS, GRID_ROWS, ENV_OBJECTS, CHARACTER_CLASSES, ENEMY_TYPES, ZOOM_MIN, ZOOM_MAX } from './constants.js';
 import { state } from './state.js';
+import { network } from './network.js';
 
 // ── Coordinate helpers ────────────────────────────────────
 function getMapPos(canvas, e) {
@@ -144,6 +145,25 @@ export function bindInteractions(canvas, renderer, onUpdate) {
     const cell = posToCell(pos);
     const tool = state.get('activeTool');
     const item = state.get('activeItem');
+    const { role, myHeroUid, nickname } = state.getAll().session;
+
+    if (role === 'hero') {
+      // Special: Placing the first character
+      if (tool === 'characters' && item && !myHeroUid) {
+        network.sendCommand('ADD_HERO', { classId: item, x: pos.x - 26, y: pos.y - 26, nickname });
+        state.setActiveItem(null); // Stop placement mode after sending
+        return;
+      }
+      
+      // Hero can only move their own character
+      const hit = hitTestTokens(state.getAll().characters, pos, 52);
+      if (hit && hit.uid === myHeroUid) {
+        dragging = { layer: 'characters', uid: hit.uid, offsetX: pos.x - hit.x, offsetY: pos.y - hit.y };
+      } else {
+        showToast('Solo puedes mover a tu propio héroe.', 'warning');
+      }
+      return;
+    }
 
     if (tool === 'floor') {
       painting = true;
@@ -273,9 +293,18 @@ export function bindInteractions(canvas, renderer, onUpdate) {
     if (dragging) {
       const nx = pos.x - dragging.offsetX;
       const ny = pos.y - dragging.offsetY;
-      if (dragging.layer === 'env')        state.moveEnvObject(dragging.uid, nx, ny);
-      if (dragging.layer === 'characters') state.moveCharacter(dragging.uid, nx, ny);
-      if (dragging.layer === 'enemies')    state.moveEnemy(dragging.uid, nx, ny);
+      
+      const { role } = state.getAll().session;
+      if (role === 'hero') {
+        // Send move to DM
+        network.sendCommand('MOVE_TOKEN', { uid: dragging.uid, layer: dragging.layer, x: nx, y: ny });
+        // Update locally for smoothness (DM will sync back soon)
+        state.moveCharacter(dragging.uid, nx, ny);
+      } else {
+        if (dragging.layer === 'env')        state.moveEnvObject(dragging.uid, nx, ny);
+        if (dragging.layer === 'characters') state.moveCharacter(dragging.uid, nx, ny);
+        if (dragging.layer === 'enemies')    state.moveEnemy(dragging.uid, nx, ny);
+      }
       onUpdate();
     }
   });
@@ -296,6 +325,8 @@ export function bindInteractions(canvas, renderer, onUpdate) {
   // ── Right Click (erase / delete) ─────────────────────────
   canvas.addEventListener('contextmenu', e => {
     e.preventDefault();
+    if (state.getAll().session.role === 'hero') return; // Heroes can't delete
+    
     const pos  = getMapPos(canvas, e);
     const tool = state.get('activeTool');
     if (tool === 'floor')      { 

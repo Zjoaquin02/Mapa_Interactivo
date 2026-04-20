@@ -412,7 +412,15 @@ export class MapRenderer {
 
     // ── Fog of War ─────────────────────────────────────────
     if (st.layers.fog && st.layers.fog.visible) {
-      ctx.fillStyle = 'rgba(0,0,0,1)';
+      const { role, previewFog } = st.session;
+      
+      if (this.exportMode || role === 'hero') {
+        ctx.fillStyle = 'rgba(0,0,0,1)';
+      } else {
+        // DM view: semi-transparent by default, or very transparent in preview mode
+        ctx.fillStyle = previewFog ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.55)';
+      }
+
       for (let c = 0; c < GRID_COLS; c++) {
         const x = c * TILE_SIZE;
         if (x + TILE_SIZE < viewLeft || x > viewRight) continue;
