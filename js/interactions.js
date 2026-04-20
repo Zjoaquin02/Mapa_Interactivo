@@ -4,6 +4,7 @@
 import { TILE_SIZE, GRID_COLS, GRID_ROWS, ENV_OBJECTS, CHARACTER_CLASSES, ENEMY_TYPES, ZOOM_MIN, ZOOM_MAX } from './constants.js';
 import { state } from './state.js';
 import { network } from './network.js';
+import { showToast } from './ui_utils.js';
 
 // ── Coordinate helpers ────────────────────────────────────
 function getMapPos(canvas, e) {
@@ -52,15 +53,7 @@ function hitTestDrawings(drawings, pos) {
   return null;
 }
 
-// ── Toast ────────────────────────────────────────────────
-export function showToast(msg, type = 'info') {
-  const t = document.createElement('div');
-  t.className = `toast toast--${type}`;
-  t.textContent = msg;
-  document.getElementById('toast-container').appendChild(t);
-  setTimeout(() => t.classList.add('toast--visible'), 10);
-  setTimeout(() => { t.classList.remove('toast--visible'); setTimeout(() => t.remove(), 300); }, 2600);
-}
+// Moved to ui_utils.js
 
 // ── Main ─────────────────────────────────────────────────
 export function bindInteractions(canvas, renderer, onUpdate) {

@@ -2,7 +2,7 @@
 //  D&D Interactive Map Builder — Initiative Panel
 // ============================================================
 import { state } from './state.js';
-import { showToast } from './interactions.js';
+import { showToast } from './ui_utils.js';
 import { network } from './network.js';
 
 const container = () => document.getElementById('initiative-list');

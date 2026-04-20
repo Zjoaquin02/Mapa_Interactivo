@@ -9,7 +9,7 @@ import { renderInitiativePanel, bindInitiativeControls } from './initiative.js';
 import { renderMapSlots, bindMapSlotControls } from './mapslots.js';
 import { network } from './network.js';
 import { CHARACTER_CLASSES } from './constants.js';
-import { showToast } from './interactions.js';
+import { showToast } from './ui_utils.js';
 
 // ── Canvas Setup ──────────────────────────────────────────
 const canvas   = document.getElementById('map-canvas');

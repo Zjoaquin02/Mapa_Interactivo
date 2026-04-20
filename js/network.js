@@ -3,7 +3,7 @@
  * Handles P2P synchronization between DM and Heroes.
  */
 import { state } from './state.js';
-import { showToast } from './interactions.js';
+import { showToast } from './ui_utils.js';
 
 class NetworkManager {
   constructor() {
@@ -12,6 +12,12 @@ class NetworkManager {
     this.connToDM = null;  // Only for Heroes
     this.role = 'dm';
     this.isReady = false;
+  }
+
+  _getPeerConstructor() {
+    if (typeof Peer !== 'undefined') return Peer;
+    if (window.Peer) return window.Peer;
+    return null;
   }
 
   /**
@@ -23,9 +29,15 @@ class NetworkManager {
       state.getAll().session.role = 'dm';
       state.getAll().session.nickname = nickname;
 
+      const PeerClass = this._getPeerConstructor();
+      if (!PeerClass) {
+        reject('PeerJS library not loaded.');
+        return;
+      }
+
       // Generate a short 5-6 char ID for easier typing
       const shortId = Math.random().toString(36).substring(2, 8).toUpperCase();
-      this.peer = new Peer(shortId);
+      this.peer = new PeerClass(shortId);
 
       this.peer.on('open', id => {
         state.getAll().session.roomCode = id;
@@ -52,7 +64,13 @@ class NetworkManager {
       state.getAll().session.nickname = nickname;
       state.getAll().session.roomCode = roomId;
 
-      this.peer = new Peer();
+      const PeerClass = this._getPeerConstructor();
+      if (!PeerClass) {
+        reject('PeerJS library not loaded.');
+        return;
+      }
+
+      this.peer = new PeerClass();
 
       this.peer.on('open', () => {
         const conn = this.peer.connect(roomId.toUpperCase());
