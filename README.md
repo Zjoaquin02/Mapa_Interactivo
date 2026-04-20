@@ -103,10 +103,21 @@ Nueva pestaña **🎨 Dibujo** para marcar tácticas o hechizos en el tablero.
 
 ## 💀 Capa Enemigos
 
-Máximo **30 fichas**. Incluye enemigos básicos (Emojis) y jefes/monstruos especiales (Sprites).
+Máximo **30 fichas**. El panel de enemigos se sincroniza automáticamente con el **Bestiario D&D**, ofreciendo una lista siempre actualizada de criaturas.
 
 - **Básicos:** Goblin, Orco, Esqueleto, Dragón, Zombie, Demonio.
 - **Especiales:** Araña Gigante, Troll, Vampiro, Hechicero Oscuro, Bandido, Hombre Lobo, Grifo, Lich.
+- **Sincronización:** Cada vez que abras el proyecto, el constructor descarga las últimas entradas y estadísticas del Bestiario remoto.
+
+---
+
+## 📚 Integración con el Bestiario
+
+MapForge está vinculado directamente con el proyecto [Bestiario D&D](https://zjoaquin02.github.io/Bestiary-D-D/).
+
+- **Selección Jerárquica (Grimorios):** Los enemigos están agrupados en tomos mágicos (ej. *Esqueletos*, *Zombies*, *Señores del Infierno*). Al expandir un libro, podrás elegir la variante específica para colocar en el mapa.
+- **Estadísticas Dinámicas:** Al colocar un monstruo, el sistema asigna automáticamente su HP base y nombre real según la ficha técnica oficial.
+- **Acceso Directo:** Cada botón de enemigo en el panel y cada token en la iniciativa incluye un acceso directo (ℹ️) que abre la página oficial de esa criatura en el Bestiario para consultar lore y habilidades.
 
 ---
 
