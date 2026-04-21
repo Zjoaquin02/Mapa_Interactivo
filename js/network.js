@@ -12,7 +12,16 @@ class NetworkManager {
     this.connToDM = null;  // Only for Heroes
     this.role = null;
     this.isReady = false;
+    this._chatListeners = [];
     this._updateStatusDot('ready');
+  }
+
+  onChat(fn) {
+    this._chatListeners.push(fn);
+  }
+
+  _emitChat(msg) {
+    this._chatListeners.forEach(fn => fn(msg));
   }
 
   _updateStatusDot(status) {
@@ -152,6 +161,10 @@ class NetworkManager {
 
   _handleInboundData(msg, conn) {
     if (this.role === 'hero') {
+      if (msg.type === 'CHAT_MSG') {
+        this._emitChat(msg);
+        return;
+      }
       if (msg.type === 'FULL_SYNC') {
         const st = state.getAll();
         // Update local state without triggering a broadcast back
@@ -199,6 +212,13 @@ class NetworkManager {
         case 'UPDATE_INIT':
           state.setInitiativeRoll(msg.uid, msg.roll);
           break;
+        case 'CHAT_MSG': {
+          // Retransmit to all heroes EXCEPT the sender + display locally on DM
+          const chatPacket = { type: 'CHAT_MSG', nickname: msg.nickname, role: 'hero', text: msg.text };
+          this.connections.forEach(c => { if (c.open && c !== conn) c.send(chatPacket); });
+          this._emitChat(chatPacket);
+          break;
+        }
       }
     }
 
@@ -233,6 +253,21 @@ class NetworkManager {
   sendCommand(type, data) {
     if (this.role !== 'hero' || !this.connToDM || !this.connToDM.open) return;
     this.connToDM.send({ type, ...data });
+  }
+
+  sendChatMessage(text) {
+    const { nickname, role } = state.getAll().session;
+    if (role === 'dm') {
+      // DM broadcasts directly to all + shows locally
+      const packet = { type: 'CHAT_MSG', nickname, role: 'dm', text };
+      this.connections.forEach(c => { if (c.open) c.send(packet); });
+      this._emitChat(packet);
+    } else {
+      // Hero sends to DM who will retransmit
+      this.sendCommand('CHAT_MSG', { nickname, text });
+      // Also show locally immediately
+      this._emitChat({ type: 'CHAT_MSG', nickname, role: 'hero', text });
+    }
   }
 }
 

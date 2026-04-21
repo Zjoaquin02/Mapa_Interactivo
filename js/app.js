@@ -127,6 +127,7 @@ document.getElementById('btn-open-maps')?.addEventListener('click', () => {
   }
 });
 
+
 document.getElementById('btn-close-rpanel')?.addEventListener('click', () => {
   closeRightPanel();
 });
@@ -543,6 +544,105 @@ try {
       showToast('¡Código de sala copiado! 📋', 'info');
     });
   });
+
+  // ── Chat Feature ─────────────────────────────────────────
+  const chatMessages = [];
+  let chatPanelIsActive = false;
+
+  function clearChatBadges() {
+    document.getElementById('chat-unread-badge')?.setAttribute('style', 'display:none;');
+    document.getElementById('chat-toolbar-badge')?.setAttribute('style', 'display:none;');
+  }
+
+  function renderChat() {
+    const container = document.getElementById('chat-messages');
+    if (!container) return;
+
+    if (chatMessages.length === 0) {
+      container.innerHTML = '<div class="chat-empty">💬<br>Aún no hay mensajes.<br>¡Rompe el hielo!</div>';
+      return;
+    }
+
+    container.innerHTML = chatMessages.map(msg => {
+      const isDM    = msg.role === 'dm';
+      const roleTag = isDM ? 'dm' : 'hero';
+      const roleText= isDM ? 'DM' : 'PJ';
+      const icon    = isDM ? '👑' : '⚔️';
+      return `
+        <div class="chat-msg">
+          <div class="chat-msg-avatar chat-msg-avatar--${roleTag}">${icon}</div>
+          <div class="chat-msg-body">
+            <div class="chat-msg-header">
+              <span class="chat-role-badge chat-role-badge--${roleTag}">${roleText}</span>
+              <span class="chat-nickname">${msg.nickname}</span>
+            </div>
+            <div class="chat-msg-text">${msg.text}</div>
+          </div>
+        </div>`;
+    }).join('');
+
+    // Auto-scroll to bottom
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function sendChatMsg() {
+    const input = document.getElementById('chat-input');
+    if (!input) return;
+    const text = input.value.trim();
+    if (!text) return;
+    if (!network.isReady) { showToast('Conéctate a una sala primero.', 'warning'); return; }
+    network.sendChatMessage(text);
+    input.value = '';
+    input.focus();
+  }
+
+  // Register network listener for incoming messages
+  network.onChat((msg) => {
+    chatMessages.push(msg);
+    renderChat();
+
+    // Show unread badges if chat panel is closed
+    if (!chatPanelIsActive) {
+      const badge1 = document.getElementById('chat-unread-badge');
+      const badge2 = document.getElementById('chat-toolbar-badge');
+      if (badge1) badge1.style.display = 'inline-flex';
+      if (badge2) badge2.style.display = 'inline-flex';
+    }
+  });
+
+  document.getElementById('chat-send-btn')?.addEventListener('click', sendChatMsg);
+  document.getElementById('chat-input')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); sendChatMsg(); }
+  });
+
+  // Clear badge when chat panel is opened via tab
+  const chatTabBtn = document.getElementById('rpanel-tab-chat');
+  chatTabBtn?.addEventListener('click', () => {
+    chatPanelIsActive = true;
+    clearChatBadges();
+    renderChat();
+  });
+
+  // Track when chat panel goes out of focus
+  document.querySelectorAll('.rpanel-tab:not(#rpanel-tab-chat)').forEach(btn => {
+    btn.addEventListener('click', () => { chatPanelIsActive = false; });
+  });
+  document.getElementById('btn-close-rpanel')?.addEventListener('click', () => { chatPanelIsActive = false; });
+
+  // Toolbar Chat button
+  document.getElementById('btn-open-chat')?.addEventListener('click', () => {
+    if (rightPanelOpen && rightPanel.querySelector('.rpanel-tab[data-panel="chat"]')?.classList.contains('active')) {
+      closeRightPanel();
+      chatPanelIsActive = false;
+    } else {
+      openRightPanel('chat');
+      chatPanelIsActive = true;
+      clearChatBadges();
+      renderChat();
+    }
+  });
+
+  renderChat();
 
   console.log('D&D MapForge — Ready.');
 } catch (err) {

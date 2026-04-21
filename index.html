@@ -34,6 +34,7 @@
 
     <button class="tool-btn tool-btn--purple" id="btn-open-initiative" title="Panel de iniciativa">⚔️ Iniciativa</button>
     <button class="tool-btn tool-btn--purple" id="btn-open-maps" title="Guardar / cargar mapas">🗺️ Mapas</button>
+    <button class="tool-btn tool-btn--purple" id="btn-open-chat" title="Chat de sala">💬 Chat <span id="chat-toolbar-badge" class="chat-unread-badge" style="display:none;">!</span></button>
 
     <div id="room-code-container" class="room-code-badge" style="display:none;">
       <span class="status-dot" id="network-status-dot" title="Conexión activa"></span>
@@ -472,6 +473,7 @@
       <div class="rpanel-tabs">
         <button class="rpanel-tab active" data-panel="initiative" id="rpanel-tab-initiative">⚔️ Iniciativa</button>
         <button class="rpanel-tab" data-panel="maps" id="rpanel-tab-maps">🗺️ Mapas</button>
+        <button class="rpanel-tab" data-panel="chat" id="rpanel-tab-chat">💬 Chat <span id="chat-unread-badge" class="chat-unread-badge" style="display:none;">!</span></button>
         <button class="rpanel-close" id="btn-close-rpanel" title="Cerrar panel">✕</button>
       </div>
 
@@ -515,6 +517,15 @@
         <p style="font-size:11px;color:var(--text-secondary);padding:0 12px 10px;line-height:1.5;">El estado se guarda
           en la caché del navegador. Útil para trabajar rápido el mismo día.</p>
         <div id="map-slots-list" class="map-slots-list"></div>
+      </div>
+
+      <!-- ── Chat Panel ─────────────────────────────────────── -->
+      <div class="rpanel-content" id="rpanel-chat">
+        <div id="chat-messages" class="chat-messages"></div>
+        <div class="chat-input-row">
+          <input type="text" id="chat-input" class="chat-input" placeholder="Escribe un mensaje..." maxlength="200" />
+          <button id="chat-send-btn" class="chat-send-btn" title="Enviar">➤</button>
+        </div>
       </div>
 
     </aside>
