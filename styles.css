@@ -4,34 +4,77 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
 
-/* ── Variables ────────────────────────────────────────────── */
+/* ════════════════════════════════════════════════════════════
+   DESIGN SYSTEM — Variables Globales
+   Modificar aquí afecta la estética de toda la aplicación.
+   ════════════════════════════════════════════════════════════
+   FONDOS:
+     bg-deep  → Fondo base de la página (más oscuro)
+     bg-dark  → Fondo secundario
+     bg-panel → Sidebars, paneles y overlays semi-transparentes
+     bg-card  → Tarjetas, botones y elementos interactivos
+   ACENTO PÚRPURA:
+     accent (#7c3aed)  → Selección activa, tabs, anillos de foco
+     accent-light      → Variante más clara para textos en acento
+   ACENTO DORADO:
+     gold (#e8b848)    → Marca, títulos, rondas de combate
+   ESTADO / FEEDBACK:
+     danger (#ef4444)  → Borrar, daño, errores
+     success (#22c55e) → HP alta, confirmaciones
+     warning (#f59e0b) → HP media, advertencias
+   CHAT:
+     chat-dm (#ff6b35) → Naranja saturado — badge del DM
+     chat-pj (#00d4ff) → Cyan brillante   — badge del jugador
+   ════════════════════════════════════════════════════════════ */
 :root {
-  --bg-deep:       #0d0d1a;
-  --bg-dark:       #13132b;
-  --bg-panel:      rgba(16, 14, 40, 0.92);
-  --bg-card:       rgba(255,255,255,0.04);
-  --bg-card-hover: rgba(255,255,255,0.09);
-  --border:        rgba(255,255,255,0.09);
-  --border-glow:   rgba(160,120,255,0.35);
-  --text-primary:  #e8e0ff;
-  --text-secondary:#8878aa;
-  --accent:        #7c3aed;
-  --accent-glow:   rgba(124,58,237,0.4);
-  --accent-light:  #a855f7;
-  --gold:          #e8b848;
-  --gold-glow:     rgba(232,184,72,0.35);
-  --danger:        #ef4444;
-  --danger-glow:   rgba(239,68,68,0.25);
-  --success:       #22c55e;
-  --warning:       #f59e0b;
-  --radius:        10px;
-  --radius-lg:     14px;
-  --sidebar-w:     292px;
-  --rpanel-w:      320px;
-  --layers-h:      165px;
-  --toolbar-h:     52px;
-  --ease:          0.22s ease;
+  /* ── Fondos ──────────────────────────────────────────────── */
+  --bg-deep:       #0d0d1a;                 /* Fondo base de la página */
+  --bg-dark:       #13132b;                 /* Fondo secundario */
+  --bg-panel:      rgba(16, 14, 40, 0.92);  /* Sidebars y paneles principales */
+  --bg-card:       rgba(255,255,255,0.04);  /* Tarjetas y botones */
+  --bg-card-hover: rgba(255,255,255,0.09);  /* Estado hover de tarjetas */
+
+  /* ── Bordes ──────────────────────────────────────────────── */
+  --border:        rgba(255,255,255,0.09);  /* Borde neutro genérico */
+  --border-glow:   rgba(160,120,255,0.35);  /* Borde con brillo (hover/active) */
+
+  /* ── Tipografía ──────────────────────────────────────────── */
+  --text-primary:  #e8e0ff;                 /* Texto principal */
+  --text-secondary:#8878aa;                 /* Texto secundario / hints */
+
+  /* ── Acento Púrpura ──────────────────────────────────────── */
+  --accent:        #7c3aed;                 /* Púrpura (selección, tabs, foco) */
+  --accent-glow:   rgba(124,58,237,0.4);    /* Sombra de brillo del acento */
+  --accent-light:  #a855f7;                 /* Variante clara del acento */
+
+  /* ── Acento Dorado ───────────────────────────────────────── */
+  --gold:          #e8b848;                 /* Dorado (marca, títulos, rondas) */
+  --gold-glow:     rgba(232,184,72,0.35);   /* Sombra de brillo del dorado */
+
+  /* ── Estado / Feedback ───────────────────────────────────── */
+  --danger:        #ef4444;                 /* Rojo (borrar, daño, errores) */
+  --danger-glow:   rgba(239,68,68,0.25);    /* Sombra del danger */
+  --success:       #22c55e;                 /* Verde (HP alta, confirmaciones) */
+  --warning:       #f59e0b;                 /* Amarillo (HP media, advertencias) */
+
+  /* ── Chat ────────────────────────────────────────────────── */
+  --chat-dm:         #ff6b35;               /* Naranja — color principal del DM */
+  --chat-dm-bg:      rgba(255,107,53,0.15); /* Fondo del badge y avatar del DM */
+  --chat-dm-border:  rgba(255,107,53,0.4);  /* Borde del badge y avatar del DM */
+  --chat-pj:         #00d4ff;               /* Cyan — color principal del jugador */
+  --chat-pj-bg:      rgba(0,212,255,0.12);  /* Fondo del badge y avatar del jugador */
+  --chat-pj-border:  rgba(0,212,255,0.35);  /* Borde del badge y avatar del jugador */
+
+  /* ── Layout ──────────────────────────────────────────────── */
+  --radius:        10px;                    /* Radio de bordes estándar */
+  --radius-lg:     14px;                    /* Radio de bordes grandes */
+  --sidebar-w:     292px;                   /* Ancho del panel izquierdo */
+  --rpanel-w:      320px;                   /* Ancho del panel derecho */
+  --layers-h:      165px;                   /* Alto del panel de capas */
+  --toolbar-h:     52px;                    /* Alto de la toolbar */
+  --ease:          0.22s ease;              /* Transición estándar */
 }
+
 
 /* ── Reset ───────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -248,7 +291,6 @@ body {
 .erase-btn:hover { background: rgba(239,68,68,0.14); border-color: var(--danger); color: var(--danger); }
 .erase-btn.active { background: rgba(239,68,68,0.22); border-color: var(--danger); color: var(--danger); box-shadow: 0 0 8px var(--danger-glow); }
 
-/* ── Item grid ──────────────────────────────────────────── */
 /* ── Item grid ──────────────────────────────────────────── */
 .item-grid { display: grid; grid-template-columns: 1fr; gap: 7px; width: 100%; }
 .items-enemies.item-grid { grid-template-columns: 1fr !important; }
@@ -936,6 +978,8 @@ body {
 .toast--visible  { opacity: 1; transform: translateY(0); }
 .toast--info     { background: rgba(18,16,50,0.92); border: 1px solid var(--border-glow); color: var(--text-primary); }
 .toast--warning  { background: rgba(245,158,11,0.14); border: 1px solid var(--warning); color: var(--gold); }
+.toast--error    { background: rgba(239,68,68,0.14);  border: 1px solid var(--danger);  color: var(--danger); }
+.toast--success  { background: rgba(34,197,94,0.14);  border: 1px solid var(--success); color: var(--success); }
 
 /* ════════════════════════════════════════════════════════════
    LOBBY / MULTIPLAYER STYLES
@@ -1025,7 +1069,12 @@ body {
 #char-selection-grid .item-btn { padding: 12px 10px; }
 #char-selection-grid .char-icon { font-size: 28px; }
 
-/* ── UI Restrictions (Hero Mode) ────────────────────────── */
+/* ════════════════════════════════════════════════════════════
+   MODO HÉROE — Restricciones de UI
+   Se activan cuando body tiene la clase .is-hero
+   (al conectarse un jugador, no el DM)
+   ════════════════════════════════════════════════════════════ */
+/* ── Sidebar: solo muestra la pestaña de personaje ──────── */
 body.is-hero .sidebar-tabs .tab-btn:not([data-tool="characters"]):not([data-tool="initiative"]) { display: none; }
 body.is-hero .sidebar-tabs .tab-btn[data-tool="characters"] span:last-child { display: none; }
 body.is-hero .sidebar-tabs .tab-btn[data-tool="characters"]::after { content: 'Mi Héroe'; font-size: 10px; }
@@ -1035,6 +1084,7 @@ body.is-hero #panel-characters .panel-header { content: 'Mi Personaje'; }
 body.is-hero #panel-characters .panel-hint,
 body.is-hero #panel-characters .count-header { display: none; }
 
+/* ── Toolbar/Panel: controles exclusivos del DM ─────────── */
 body.is-hero #btn-clear-floor,
 body.is-hero #btn-reset-all,
 body.is-hero #btn-open-maps,
@@ -1045,7 +1095,6 @@ body.is-hero #btn-init-roll-all,
 body.is-hero #btn-init-clear { display: none !important; }
 
 body.is-hero .toolbar-sep { flex: 1; }
-.toast--error    { background: rgba(239,68,68,0.14);  border: 1px solid var(--danger);  color: var(--danger); }
 
 /* ── Room Code Display ─────────────────────────────────── */
 .room-code-badge {
@@ -1164,8 +1213,8 @@ body.is-hero .toolbar-sep { flex: 1; }
   flex-shrink: 0;
   border: 1.5px solid;
 }
-.chat-msg-avatar--dm   { background: rgba(255, 107, 53, 0.15); border-color: rgba(255,107,53,0.5); }
-.chat-msg-avatar--hero { background: rgba(0, 212, 255, 0.12);  border-color: rgba(0,212,255,0.4);  }
+.chat-msg-avatar--dm   { background: var(--chat-dm-bg);  border-color: var(--chat-dm-border); }
+.chat-msg-avatar--hero { background: var(--chat-pj-bg);  border-color: var(--chat-pj-border); }
 
 .chat-msg-body {
   flex: 1;
@@ -1192,8 +1241,8 @@ body.is-hero .toolbar-sep { flex: 1; }
   border-radius: 4px;
   letter-spacing: 0.5px;
 }
-.chat-role-badge--dm   { color: #ff6b35; background: rgba(255,107,53,0.15); border: 1px solid rgba(255,107,53,0.35); }
-.chat-role-badge--hero { color: #00d4ff; background: rgba(0,212,255,0.12);  border: 1px solid rgba(0,212,255,0.3);  }
+.chat-role-badge--dm   { color: var(--chat-dm); background: var(--chat-dm-bg); border: 1px solid var(--chat-dm-border); }
+.chat-role-badge--hero { color: var(--chat-pj); background: var(--chat-pj-bg); border: 1px solid var(--chat-pj-border); }
 
 .chat-nickname {
   color: var(--text-primary);
