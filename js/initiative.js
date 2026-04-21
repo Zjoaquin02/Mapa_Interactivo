@@ -108,7 +108,14 @@ export function renderInitiativePanel() {
     inp.addEventListener('change', () => {
       const uid = +inp.dataset.uid;
       const maxHp = parseInt(inp.value, 10);
-      if (!isNaN(maxHp) && maxHp > 0) state.setEntryMaxHp(uid, maxHp);
+      if (!isNaN(maxHp) && maxHp > 0) {
+        const { role } = state.getAll().session;
+        if (role === 'hero') {
+          network.sendCommand('UPDATE_MAX_HP', { uid, maxHp });
+        } else {
+          state.setEntryMaxHp(uid, maxHp);
+        }
+      }
     });
   });
 
@@ -116,7 +123,19 @@ export function renderInitiativePanel() {
   list.querySelectorAll('.init-mod-btn').forEach(btn => {
     btn.addEventListener('click', e => {
       e.stopPropagation();
-      state.modInitiativeRoll(+btn.dataset.uid, +btn.dataset.delta);
+      const uid = +btn.dataset.uid;
+      const delta = +btn.dataset.delta;
+      const { role } = state.getAll().session;
+      
+      const entry = state.getAll().initiative.entries.find(en => en.uid === uid);
+      if (entry) {
+        const newRoll = (entry.roll || 0) + delta;
+        if (role === 'hero') {
+          network.sendCommand('UPDATE_INIT', { uid, roll: newRoll });
+        } else {
+          state.modInitiativeRoll(uid, delta);
+        }
+      }
     });
   });
 

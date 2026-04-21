@@ -1,7 +1,7 @@
 // ============================================================
 //  D&D Interactive Map Builder — State Manager
 // ============================================================
-import { CHARACTER_CLASSES, ENEMY_TYPES, ENEMY_VARIANTS } from './constants.js';
+import { CHARACTER_CLASSES, ENEMY_TYPES, ENEMY_VARIANTS, GRID_COLS, GRID_ROWS } from './constants.js';
 
 const DEFAULT_STATE = () => ({
   activeTool: 'floor',
@@ -137,6 +137,17 @@ class StateManager {
   clearFloor() {
     if (this.isLayerLocked('floor')) return false;
     this._state.floorGrid = {};
+    this._state.floorRevision++;
+    this._notify('floorGrid'); this._save(); return true;
+  }
+
+  fillFloor(terrainId) {
+    if (this.isLayerLocked('floor')) return false;
+    for (let c = 0; c < GRID_COLS; c++) {
+      for (let r = 0; r < GRID_ROWS; r++) {
+        this._state.floorGrid[`${c},${r}`] = terrainId;
+      }
+    }
     this._state.floorRevision++;
     this._notify('floorGrid'); this._save(); return true;
   }

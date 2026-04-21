@@ -193,6 +193,9 @@ class NetworkManager {
         case 'UPDATE_HP':
           state.setEntryHp(msg.uid, msg.hp);
           break;
+        case 'UPDATE_MAX_HP':
+          state.setEntryMaxHp(msg.uid, msg.maxHp);
+          break;
         case 'UPDATE_INIT':
           state.setInitiativeRoll(msg.uid, msg.roll);
           break;

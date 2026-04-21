@@ -256,6 +256,17 @@ document.getElementById('btn-clear-floor')?.addEventListener('click', () => {
   if (confirm('¿Borrar todas las baldosas del piso?')) { state.clearFloor(); render(); }
 });
 
+document.getElementById('btn-fill-floor')?.addEventListener('click', () => {
+  const item = state.get('activeItem');
+  if (!item) {
+    showToast('Selecciona un terreno primero', 'warning');
+    return;
+  }
+  state.fillFloor(item);
+  render();
+  showToast('¡Mapa pintado!', 'info');
+});
+
 document.getElementById('btn-fill-fog')?.addEventListener('click', () => {
   state.fillFog(); render();
 });
