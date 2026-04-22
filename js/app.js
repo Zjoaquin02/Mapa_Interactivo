@@ -1,6 +1,6 @@
-// ============================================================
-//  D&D Interactive Map Builder — Main App
-// ============================================================
+/* ============================================================
+   D&D MapForge — Main App Logic
+   ============================================================ */
 import { GRID_COLS, GRID_ROWS, TILE_SIZE } from './constants.js';
 import { state } from './state.js';
 import { MapRenderer } from './renderer.js';
@@ -11,11 +11,15 @@ import { network } from './network.js';
 import { CHARACTER_CLASSES, updateEnemyTypes, DEFAULT_ENEMIES, ENEMY_TYPES, updateEnemyVariants } from './constants.js';
 import { showToast, renderEnemyList } from './ui_utils.js';
 
-// ── Canvas Setup ──────────────────────────────────────────
+/* ════════════════════════════════════════════════════════════
+   CANVAS SETUP
+   ════════════════════════════════════════════════════════════ */
 const canvas   = document.getElementById('map-canvas');
 
 
-// ── Lobby Logic (Moved to top for priority) ──────────────
+/* ════════════════════════════════════════════════════════════
+   LOBBY LOGIC
+   ════════════════════════════════════════════════════════════ */
 const lobbyOverlay = document.getElementById('lobby-overlay');
 const lobbyStep1   = document.getElementById('lobby-step-1');
 const lobbyStepSel = document.getElementById('lobby-step-select');
@@ -70,13 +74,17 @@ function bindLobby() {
 
 bindLobby();
 
-// ── Rendering Initialization ─────────────────────────────
+/* ════════════════════════════════════════════════════════════
+   RENDERING INITIALIZATION
+   ════════════════════════════════════════════════════════════ */
 const renderer = new MapRenderer(canvas);
 function render() { renderer.render(); }
 bindInteractions(canvas, renderer, render);
 render();
 
-// ── Right Panel Toggle ────────────────────────────────────
+/* ════════════════════════════════════════════════════════════
+   PANEL TOGGLES
+   ════════════════════════════════════════════════════════════ */
 const rightPanel  = document.getElementById('right-panel');
 const leftSidebar = document.querySelector('.sidebar');
 let rightPanelOpen = false;
@@ -132,7 +140,9 @@ document.getElementById('btn-close-rpanel')?.addEventListener('click', () => {
   closeRightPanel();
 });
 
-// ── Sidebar Toggles Logic ─────────────────────────────────
+/* ════════════════════════════════════════════════════════════
+   SIDEBAR CONTROLS
+   ════════════════════════════════════════════════════════════ */
 btnToggleLeft?.addEventListener('click', () => {
   leftSidebarOpen = !leftSidebarOpen;
   leftSidebar.classList.toggle('collapsed', !leftSidebarOpen);
@@ -152,7 +162,9 @@ document.querySelectorAll('.rpanel-tab').forEach(btn => {
   btn.addEventListener('click', () => openRightPanel(btn.dataset.panel));
 });
 
-// ── Left Sidebar Tabs ─────────────────────────────────────
+/* ════════════════════════════════════════════════════════════
+   LEFT SIDEBAR TABS
+   ════════════════════════════════════════════════════════════ */
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const tool = btn.dataset.tool;
@@ -168,7 +180,9 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
-// ── Item Buttons (Standard Bind) ──────────────────────────
+/* ════════════════════════════════════════════════════════════
+   ITEM SELECTION BINDINGS
+   ════════════════════════════════════════════════════════════ */
 // Note: We only bind static buttons (Heroes, Environment, Floors). 
 // Enemies are handled dynamically.
 document.querySelectorAll('.item-btn:not(.char-btn)').forEach(btn => {
@@ -203,7 +217,9 @@ document.querySelectorAll('#panel-characters .item-btn').forEach(btn => {
   });
 });
 
-// ── Erase Buttons ─────────────────────────────────────────
+/* ════════════════════════════════════════════════════════════
+   ERASE TOOLS
+   ════════════════════════════════════════════════════════════ */
 document.querySelectorAll('.erase-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const wasActive = btn.classList.contains('active');
@@ -213,7 +229,9 @@ document.querySelectorAll('.erase-btn').forEach(btn => {
   });
 });
 
-// ── Brush Size Buttons ────────────────────────────────────
+/* ════════════════════════════════════════════════════════════
+   BRUSH SETTINGS
+   ════════════════════════════════════════════════════════════ */
 document.querySelectorAll('.brush-size-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const size = btn.dataset.size;
@@ -223,7 +241,9 @@ document.querySelectorAll('.brush-size-btn').forEach(btn => {
   });
 });
 
-// ── Layer Controls ────────────────────────────────────────
+/* ════════════════════════════════════════════════════════════
+   LAYER MANAGEMENT
+   ════════════════════════════════════════════════════════════ */
 document.querySelectorAll('.layer-lock-btn').forEach(btn => {
   btn.addEventListener('click', () => { state.toggleLayerLock(btn.dataset.layer); updateLayerUI(); render(); });
 });
@@ -252,7 +272,9 @@ function updateLayerUI() {
   });
 }
 
-// ── Toolbar Buttons ───────────────────────────────────────
+/* ════════════════════════════════════════════════════════════
+   TOOLBAR ACTIONS
+   ════════════════════════════════════════════════════════════ */
 document.getElementById('btn-clear-floor')?.addEventListener('click', () => {
   if (confirm('¿Borrar todas las baldosas del piso?')) { state.clearFloor(); render(); }
 });
@@ -283,7 +305,9 @@ document.getElementById('btn-reset-all')?.addEventListener('click', () => {
   }
 });
 
-// ── Fog Preview Toggle ────────────────────────────────────
+/* ════════════════════════════════════════════════════════════
+   FOG OF WAR PREVIEW
+   ════════════════════════════════════════════════════════════ */
 document.getElementById('btn-toggle-fog-preview')?.addEventListener('click', () => {
   if (state.getAll().session.role !== 'dm') return;
   const active = state.toggleFogPreview();
@@ -349,13 +373,17 @@ document.getElementById('btn-zoom-reset')?.addEventListener('click', () => {
   render();
 });
 
-// ── Zoom % Display ────────────────────────────────────────
+/* ════════════════════════════════════════════════════════════
+   ZOOM DISPLAY
+   ════════════════════════════════════════════════════════════ */
 function updateZoomDisplay() {
   const el = document.getElementById('zoom-display');
   if (el) el.textContent = `${Math.round(state.getAll().viewport.zoom * 100)}%`;
 }
 
-// ── Reactive State ────────────────────────────────────────
+/* ════════════════════════════════════════════════════════════
+   REACTIVE STATE SUBSCRIPTIONS
+   ════════════════════════════════════════════════════════════ */
 state.subscribe((key, st) => {
   if (key === 'characters' || key === 'all') {
     const n = st.characters.length;
@@ -395,7 +423,9 @@ state.subscribe((key, st) => {
   render();
 });
 
-// ── Hero Manual Reset ────────────────────────────────────
+/* ════════════════════════════════════════════════════════════
+   HERO RESET LOGIC
+   ════════════════════════════════════════════════════════════ */
 document.getElementById('btn-hero-reset')?.addEventListener('click', () => {
   if (!confirm('¿Seguro que quieres liberar tu personaje actual? Podrás elegir una clase diferente.')) return;
   state.getAll().session.myHeroUid = null;
@@ -517,7 +547,9 @@ async function initBestiarySync() {
   }
 }
 
-// ── App Initialization ─────────────────────────────────────
+/* ════════════════════════════════════════════════════════════
+   APP INITIALIZATION
+   ════════════════════════════════════════════════════════════ */
 try {
   console.log('D&D MapForge — Initializing...');
   updateLayerUI();
@@ -536,7 +568,9 @@ try {
     }, 100);
   }
   
-  // ── Copy Room Code Feature ───────────────────────────────
+  /* ════════════════════════════════════════════════════════════
+   NETWORK UTILITIES
+   ════════════════════════════════════════════════════════════ */
   document.getElementById('btn-copy-room-code')?.addEventListener('click', () => {
     const code = state.getAll().session.roomCode;
     if (!code) return;
@@ -545,7 +579,9 @@ try {
     });
   });
 
-  // ── Chat Feature ─────────────────────────────────────────
+  /* ════════════════════════════════════════════════════════════
+   CHAT SYSTEM
+   ════════════════════════════════════════════════════════════ */
   const chatMessages = [];
   let chatPanelIsActive = false;
 

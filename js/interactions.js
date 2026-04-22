@@ -134,11 +134,20 @@ export function bindInteractions(canvas, renderer, onUpdate) {
     }
     if (e.button !== 0) return;
 
+    const { role, myHeroUid, nickname } = state.getAll().session;
     const pos  = getMapPos(canvas, e);
+
+    // ── Ping System (Alt + Click) ───────────────────────────
+    if (e.altKey) {
+      const pingColor = e.shiftKey ? '#ffffff' : '#7c3aed';
+      console.log('Ping triggered at:', pos.x, pos.y, 'Color:', pingColor);
+      network.sendPing(pos.x, pos.y, pingColor);
+      return;
+    }
+
     const cell = posToCell(pos);
     const tool = state.get('activeTool');
     const item = state.get('activeItem');
-    const { role, myHeroUid, nickname } = state.getAll().session;
 
     if (role === 'hero') {
       // Special: Placing the first character

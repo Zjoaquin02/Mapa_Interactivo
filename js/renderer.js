@@ -257,6 +257,41 @@ function drawTurnRing(ctx, x, y, size, borderColor) {
   ctx.restore();
 }
 
+// ── Pings ──────────────────────────────────────────────────
+function drawPing(ctx, ping, now) {
+  const elapsed = now - ping.start;
+  const duration = 2000;
+  const progress = elapsed / duration;
+  if (progress > 1) return;
+
+  ctx.save();
+  ctx.strokeStyle = ping.color;
+  ctx.shadowColor = ping.color;
+  ctx.shadowBlur = 10;
+  
+  // Draw 3 expanding rings
+  for (let i = 0; i < 3; i++) {
+    const ringProgress = (progress + i * 0.3) % 1;
+    const radius = ringProgress * 40;
+    const alpha = 1 - ringProgress;
+    
+    ctx.globalAlpha = alpha;
+    ctx.lineWidth = 3 * alpha;
+    ctx.beginPath();
+    ctx.arc(ping.x, ping.y, radius, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  
+  // Center dot
+  ctx.globalAlpha = 1 - progress;
+  ctx.fillStyle = ping.color;
+  ctx.beginPath();
+  ctx.arc(ping.x, ping.y, 4, 0, Math.PI * 2);
+  ctx.fill();
+  
+  ctx.restore();
+}
+
 // ── Main Renderer ─────────────────────────────────────────
 export class MapRenderer {
   constructor(canvas) {
@@ -265,6 +300,7 @@ export class MapRenderer {
     this.showGrid  = true;
     this.exportMode = false;
     this.hoverCell = null;
+    this._isAnimating = false;
     
     if (this.canvas.parentElement) {
       this._resize();
@@ -457,6 +493,33 @@ export class MapRenderer {
       ctx.restore();
     }
 
+    // ── Pings ────────────────────────────────────────────────
+    const now = Date.now();
+    if (st.pings && st.pings.length > 0) {
+      st.pings.forEach(p => drawPing(ctx, p, now));
+      
+      // Keep animating if there are active pings
+      if (!this._isAnimating) {
+        this._isAnimating = true;
+        this._startAnimation();
+      }
+    } else {
+      this._isAnimating = false;
+    }
+
     ctx.restore();
+  }
+
+  _startAnimation() {
+    if (!this._isAnimating) return;
+    requestAnimationFrame(() => {
+      this.render();
+      const st = state.getAll();
+      if (st.pings && st.pings.length > 0) {
+        this._startAnimation();
+      } else {
+        this._isAnimating = false;
+      }
+    });
   }
 }

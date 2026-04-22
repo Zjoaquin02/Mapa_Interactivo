@@ -19,6 +19,20 @@ Constructor de escenarios interactivo para campañas de Dungeons & Dragons.
 
 ---
 
+## 📍 Sistema de Ping (Señalización)
+
+Permite marcar puntos temporales en el mapa para llamar la atención de los demás jugadores. Muy útil para indicar movimientos o señalar enemigos.
+
+| Control | Acción |
+|---|---|
+| `Alt` + Clic Izquierdo | Ping **Violeta** |
+| `Shift` + `Alt` + Clic Izquierdo | Ping **Blanco** |
+
+- **Animación:** Ondas expansivas concéntricas que duran 2 segundos.
+- **Sincronización:** Totalmente sincronizado entre DM y Héroes en tiempo real.
+
+---
+
 ## 🏔️ Capa Piso (Baldosas de Terreno)
 
 | Control | Acción |

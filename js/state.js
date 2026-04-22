@@ -29,6 +29,7 @@ const DEFAULT_STATE = () => ({
   characters: [],
   enemies:    [],
   drawings:   [],
+  pings:      [], // [{ x, y, color, start }]
 
   initiative: {
     entries:      [],   // [{ uid, name, icon, color, border, type, roll, hp, maxHp }]
@@ -233,6 +234,19 @@ class StateManager {
     if (this.isLayerLocked('draw')) return false;
     this._state.drawings = [];
     this._notify('drawings'); this._save(); return true;
+  }
+
+  // ── Pings ─────────────────────────────────────────────────
+  addPing(x, y, color) {
+    const ping = { x, y, color, start: Date.now() };
+    this._state.pings.push(ping);
+    this._notify('pings');
+    
+    // Auto-remove after animation
+    setTimeout(() => {
+      this._state.pings = this._state.pings.filter(p => p !== ping);
+      this._notify('pings');
+    }, 2000);
   }
 
   // ── Env Objects ───────────────────────────────────────────

@@ -139,6 +139,7 @@ class NetworkManager {
     state.subscribe((key) => {
       if (key === 'viewport') return; // Don't sync individual zoom/pan typically
       if (key === 'session') return;
+      if (key === 'pings') return;    // Don't broadcast full state for pings
       if (this.role === 'dm' && this.isReady) {
         this.broadcastState();
       }
@@ -163,6 +164,11 @@ class NetworkManager {
     if (this.role === 'hero') {
       if (msg.type === 'CHAT_MSG') {
         this._emitChat(msg);
+        return;
+      }
+      if (msg.type === 'PING') {
+        console.log('Hero received PING from DM:', msg.x, msg.y);
+        state.addPing(msg.x, msg.y, msg.color);
         return;
       }
       if (msg.type === 'FULL_SYNC') {
@@ -219,6 +225,18 @@ class NetworkManager {
           this._emitChat(chatPacket);
           break;
         }
+        case 'PING': {
+          console.log('DM received PING from Hero:', msg.x, msg.y);
+          // Retransmit to all heroes + show locally on DM
+          const pingPacket = { type: 'PING', x: msg.x, y: msg.y, color: msg.color };
+          this.connections.forEach(c => {
+            if (c.open && c !== conn) {
+              c.send(pingPacket);
+            }
+          });
+          state.addPing(msg.x, msg.y, msg.color);
+          break;
+        }
       }
     }
 
@@ -267,6 +285,20 @@ class NetworkManager {
       this.sendCommand('CHAT_MSG', { nickname, text });
       // Also show locally immediately
       this._emitChat({ type: 'CHAT_MSG', nickname, role: 'hero', text });
+    }
+  }
+
+  sendPing(x, y, color = '#7c3aed') {
+    // Always show locally first
+    state.addPing(x, y, color);
+
+    if (!this.isReady) return;
+
+    if (this.role === 'dm') {
+      const packet = { type: 'PING', x, y, color };
+      this.connections.forEach(c => { if (c.open) c.send(packet); });
+    } else {
+      this.sendCommand('PING', { x, y, color });
     }
   }
 }
