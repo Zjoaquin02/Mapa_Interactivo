@@ -48,6 +48,19 @@ const TC = {
 // ── Tile drawing ──────────────────────────────────────────
 function drawTile(ctx, col, row, id) {
   const x = col * TILE_SIZE, y = row * TILE_SIZE, sz = TILE_SIZE;
+  
+  // Soporte para colores personalizados (Hexadecimal)
+  if (id && id.startsWith('#')) {
+    ctx.save();
+    ctx.fillStyle = id;
+    ctx.fillRect(x, y, sz, sz);
+    ctx.strokeStyle = 'rgba(0,0,0,0.12)'; 
+    ctx.lineWidth = 0.5; 
+    ctx.strokeRect(x, y, sz, sz);
+    ctx.restore();
+    return;
+  }
+
   const tc = TC[id] || TC.dungeon;
   ctx.save();
   ctx.fillStyle = tc.bg;

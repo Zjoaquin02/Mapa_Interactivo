@@ -25,11 +25,18 @@ Permite marcar puntos temporales en el mapa para llamar la atención de los dem�
 
 | Control | Acción |
 |---|---|
-| `Alt` + Clic Izquierdo | Ping **Violeta** |
-| `Shift` + `Alt` + Clic Izquierdo | Ping **Blanco** |
+| `Alt` + Clic Izquierdo | Ping **Violeta** (Estándar) |
+| `Shift` + `Alt` + Clic Izquierdo | Ping **Blanco** (Alto contraste para suelos oscuros) |
 
 - **Animación:** Ondas expansivas concéntricas que duran 2 segundos.
 - **Sincronización:** Totalmente sincronizado entre DM y Héroes en tiempo real.
+
+---
+
+## 📢 Sistema de Anuncios
+El sistema incluye un panel de noticias en la pantalla de login gestionable desde `js/news.js`:
+- **showNews**: Variable maestra para mostrar/ocultar los anuncios (0 o 1).
+- **Contenido Dinámico**: Permite informar a los jugadores sobre parches, nuevas funciones o lore de la campaña directamente al entrar.
 
 ---
 
@@ -60,6 +67,7 @@ Permite marcar puntos temporales en el mapa para llamar la atención de los dem�
 - 🌌 **Abismo** — Vacío astral profundo con nebulosas y estrellas
 - 🛣️ **Adoquín** — Suelo urbano de piedra gris para ciudades
 - 🔮 **Arcano** — Suelo ritual morado con runas geométricas
+- 🎨 **Color Personalizado** — Selector de color infinito para pintar baldosas sólidas (Hexadecimal)
 
 ---
 

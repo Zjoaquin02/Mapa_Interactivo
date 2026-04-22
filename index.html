@@ -146,6 +146,13 @@
             <button class="item-btn" data-id="magic" style="--item-color:#441188">
               <div class="tile-swatch" style="background:#441188"></div><span class="item-label">Arcano</span>
             </button>
+            
+            <!-- Selector de Color Personalizado -->
+            <button class="item-btn" id="btn-custom-tile" style="--item-color:#ffffff">
+              <div class="tile-swatch" id="custom-tile-swatch" style="background: linear-gradient(45deg, red, orange, yellow, green, blue, purple);"></div>
+              <span class="item-label">Color...</span>
+              <input type="color" id="input-custom-tile" style="position:absolute; opacity:0; pointer-events:none;">
+            </button>
           </div>
         </div>
       </div>
@@ -569,6 +576,11 @@
         </div>
       </div>
 
+
+      <div id="lobby-news" class="lobby-news" style="display:none;">
+        <h3 id="news-title"></h3>
+        <ul id="news-list"></ul>
+      </div>
 
       <div id="lobby-status" class="lobby-status"></div>
     </div>

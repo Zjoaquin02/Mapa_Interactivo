@@ -1332,3 +1332,52 @@ body.is-hero .toolbar-sep { flex: 1; }
   50%       { transform: scale(1.2); opacity: 0.8; }
 }
 
+/* ── Lobby News ─────────────────────────────────────────── */
+.lobby-news {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: left;
+}
+
+.lobby-news h3 {
+  font-size: 13px;
+  color: #ffcc00; /* Gold */
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lobby-news ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.lobby-news li {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 10px;
+  padding-left: 20px;
+  position: relative;
+  line-height: 1.5;
+}
+
+.lobby-news li::before {
+  content: "✦";
+  position: absolute;
+  left: 0;
+  color: #7c3aed;
+  font-size: 10px;
+  top: 1px;
+}
+
+.lobby-news li strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+

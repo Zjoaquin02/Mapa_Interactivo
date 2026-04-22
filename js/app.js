@@ -10,6 +10,7 @@ import { renderMapSlots, bindMapSlotControls } from './mapslots.js';
 import { network } from './network.js';
 import { CHARACTER_CLASSES, updateEnemyTypes, DEFAULT_ENEMIES, ENEMY_TYPES, updateEnemyVariants } from './constants.js';
 import { showToast, renderEnemyList } from './ui_utils.js';
+import { NEWS_CONFIG } from './news.js';
 
 /* ════════════════════════════════════════════════════════════
    CANVAS SETUP
@@ -72,7 +73,23 @@ function bindLobby() {
   });
 }
 
+function initNews() {
+  const newsContainer = document.getElementById('lobby-news');
+  if (!newsContainer || !NEWS_CONFIG.showNews) return;
+
+  const titleEl = document.getElementById('news-title');
+  const listEl = document.getElementById('news-list');
+  
+  if (titleEl) titleEl.innerHTML = NEWS_CONFIG.title;
+  if (listEl) {
+    listEl.innerHTML = NEWS_CONFIG.items.map(item => `<li>${item}</li>`).join('');
+  }
+  
+  newsContainer.style.display = 'block';
+}
+
 bindLobby();
+initNews();
 
 /* ════════════════════════════════════════════════════════════
    RENDERING INITIALIZATION
@@ -185,7 +202,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
    ════════════════════════════════════════════════════════════ */
 // Note: We only bind static buttons (Heroes, Environment, Floors). 
 // Enemies are handled dynamically.
-document.querySelectorAll('.item-btn:not(.char-btn)').forEach(btn => {
+document.querySelectorAll('.item-btn:not(.char-btn):not(#btn-custom-tile)').forEach(btn => {
   btn.addEventListener('click', () => {
     const panel = btn.closest('.tab-panel')?.id?.replace('panel-', '');
     const wasActive = btn.classList.contains('active');
@@ -215,6 +232,27 @@ document.querySelectorAll('#panel-characters .item-btn').forEach(btn => {
       state.setActiveItem(null);
     }
   });
+});
+
+/* ── CUSTOM COLOR TILE ── */
+const btnCustomTile = document.getElementById('btn-custom-tile');
+const inputCustomTile = document.getElementById('input-custom-tile');
+const swatchCustomTile = document.getElementById('custom-tile-swatch');
+
+btnCustomTile?.addEventListener('click', () => {
+  inputCustomTile.click();
+});
+
+inputCustomTile?.addEventListener('input', (e) => {
+  const color = e.target.value;
+  state.setActiveItem(color);
+  state.setActiveTool('floor');
+  state.setErasing(false);
+  
+  if (swatchCustomTile) swatchCustomTile.style.background = color;
+  
+  document.querySelectorAll('.item-btn').forEach(b => b.classList.toggle('active', b === btnCustomTile));
+  document.querySelectorAll('.erase-btn').forEach(b => b.classList.remove('active'));
 });
 
 /* ════════════════════════════════════════════════════════════
